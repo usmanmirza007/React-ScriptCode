@@ -1,0 +1,63 @@
+ register = () =>{
+        // alert('ok')
+        const {phone} = this.state;
+        const {country} = this.state;
+        const {countrycode} = this.state;
+
+        if(this.state.phone===''){
+            alert("Please Enter Phone Number");
+            return;
+          }
+          else if(this.state.phone.length < 9){
+            alert("Please Enter Atleast 9 Digits");
+            return;
+        }
+          else if(this.state.country==='' || this.state.country==='Country' ){
+            alert("Please Select Your Country");
+            return;
+         }
+         else if(this.state.countrycode==='' || this.state.countrycode==='Country Code'){
+          alert("Please Select Your Country Code");
+          return;
+        }
+          else{
+
+        fetch('http://shiamarriage.liftich.com/public/api/register', {
+
+            method: 'POST',
+            headers:{
+                'Accept': 'application/json',
+                'Content-type': 'application/json'
+            },
+            body:JSON.stringify({
+                phonenumber: phone,
+                country: country,
+                country_code: countrycode,
+            })
+        }).then((response) => response.json())
+        .then((responseJson) =>{
+            console.log(responseJson);
+            if(responseJson.message == 'Phonenumber already exist')
+            {
+                alert('This Number Is Already Exist');
+                return;
+            }
+            if(responseJson.success == '1')
+            {
+             
+                this.props.navigation.navigate('otp', {COUNTRYCODE:responseJson.user.country_code, PHONE:responseJson.user.phonenumber});
+                // this.props.navigation.navigate('otp', {uid:responseJson.user.id});
+            }
+            if(responseJson.message == 'User not registered')
+            {
+                alert('You Are Not Registered Something Went Wrong');
+                return;
+            }
+
+            // alert(responseJson);
+        })
+        .catch((error) => {
+            alert(error);
+        });
+    }
+    }

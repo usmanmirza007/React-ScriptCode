@@ -1,0 +1,35 @@
+Driver Orders List:
+
+https://bikeya.malangis.com/public/api/driverorderlist
+
+Parameter: id (Login Driver id will come here)
+
+
+Driver Accept order on click
+
+https://bikeya.malangis.com/public/api/acceptorder
+
+Parameter: id (Order id will come here from above api)
+
+Driver order complete on click
+
+https://bikeya.malangis.com/public/api/ordercompleted
+
+Parameter: Parameter: id (Order id will come here from order list api)
+
+Driver wallet APi:
+
+https://bikeya.malangis.com/public/api/driverwallet
+
+Parameters: id (Login driver API will come here)
+Get Driver API
+
+https://bikeya.malangis.com/public/api/getdriver
+
+Parameter: Parameters: id (Login driver API will come here)
+Driver Profile Api
+
+https://bikeya.malangis.com/public/api/driverprofile
+
+Parameters: username, email, password , phonenumber, country, city, gender
+

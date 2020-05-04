@@ -1,0 +1,65 @@
+this.state = {
+      errorText: '',
+      loading: false,
+      LoginID: '',
+      password: '',
+    }; 
+
+async onSignin(LoginID, password) {
+    this.setState({ errorText: '', loading: true });
+    if (this.state.LoginID === '' || this.state.password === '') {
+      this.onLoginFail();
+    }
+    else {
+      await axios.post(`http://51.77.6.84:9110/UM/Login`,
+        {
+          "LoginID": LoginID,
+          "Password": password
+        }
+      )
+        .then(async (response) => {
+          console.log(response);
+          if (response.status === 200) {
+            this.setState({ loading: false })
+            this.onLoginSuccess();
+          }
+
+          else {
+            this.setState({ loading: false })
+            this.onLoginFail();
+          }
+        })
+        .catch((error) => {
+          this.setState({ loading: false })
+          Alert.alert("Something went wrong");
+        });
+    }
+  }
+
+####################
+ renderButton() {
+    if (this.state.loading) {
+      return <SpinnerScreen />
+    }
+    return (
+      <TouchableOpacity
+        style={[styles.btnContinue]}
+        onPress={() => this.onSignin(this.state.LoginID, this.state.password)}>
+        {/* this.props.navigation.navigate('homeScreen') */}
+        <Text style={styles.btnContinueText}>Login</Text>
+      </TouchableOpacity>
+    )
+  };
+  onLoginFail() {
+    this.setState({ errorText: 'Incorrect email or password', loading: false })
+  }
+  onLoginSuccess() {
+    this.setState({
+      userId: this.state.email,
+      email: '',
+      password: '',
+      loading: false,
+      errorText: '',
+    })
+    this.props.navigation.navigate('homeScreen')
+  }

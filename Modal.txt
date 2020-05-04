@@ -1,0 +1,55 @@
+<TouchableOpacity onPress={() => {this.setState({ showMe: true })}}
+                    
+                    
+                        style={styles.buttonText}>
+                        <Text style={styles.loginText}>Ok</Text>
+                        <Modal
+                            animationType="slide"
+                            transparent={true}
+                            visible={this.state.showMe}>
+                            <View style={{ flex: 1 }}>
+                                <View style={{ flex: 0 }}></View>
+
+                                <View style={{ backgroundColor: '#fff', marginLeft: 25, marginTop: '40%', width: WIDTH - 50, height: 230 }}>
+                                    <TouchableOpacity onPress={() => this.setState({ showMe: false })}
+                                        style={{ marginLeft: '92%', marginTop: -20, backgroundColor: '#ef5350', width: 40, height: 40, borderRadius: 40 }}>
+                                        <Entypo name='cross' color='#fff' size={35}
+                                            style={{ marginLeft: 3 }}
+                                        />
+                                    </TouchableOpacity>
+                                    <View style={{ alignItems: 'center', marginTop: 40 }}>
+                                        <Text style={{ fontSize: 18, color: '#000' }}>Number Confirm</Text>
+
+                                        <View style={{ flexDirection: 'row', marginTop: 30 }}>
+                                            <Text style={{ fontSize: 18, color: '#000' }}>+ 1 (408) 555-1234</Text>
+                                            <View style={{ alignItems: 'center', marginLeft: 20 }}>
+                                                <Image source={require('./../image/edit.png')} style={{ width: 20, height: 20 }} />
+                                            </View>
+
+                                        </View>
+                                        <TouchableOpacity
+                                            style={styles.buttonModal}
+                                            onPress = {() => {this.setState({showMe: false}, () => {this.props.navigation.navigate('home')})}}>
+                                            <View style={{ flexDirection: 'row', backgroundColor: '#149c83', marginTop: 30, borderRadius: 5, width: 150, height: 40 }}>
+                                                <View style={{ justifyContent: 'center', marginLeft: 25 }}>
+                                                    <AntDesign
+                                                        // reverse
+                                                        name='checkcircle'
+                                                        type='font-awesome'
+                                                        color='#fff'
+                                                        size={20}
+                                                        style={{}}
+                                                        style={{ marginHorizontal: 10 }}
+                                                    />
+                                                </View>
+
+                                                <Text style={styles.buttonTextModal}>Yes</Text>
+                                            </View>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                </View>
+
+                            </View>
+                        </Modal>
+                    </TouchableOpacity>

@@ -1,0 +1,73 @@
+ constructor(props) {
+    super(props);
+    this.state = {
+      FirstName: '',
+      MiddleName: '',
+      LastName: '',
+      CellNo: '',
+      AccountType: '',
+      loading: false
+    };
+  }
+
+  onSignup(FirstName, MiddleName, LastName, CellNo, AccountType) {
+    try {
+      if (this.state.FirstName === '') {
+        alert("Please First Name");
+        return;
+      }
+      else if (this.state.CellNo === '') {
+        alert("Please enter Cell Phone");
+        return;
+      }
+      else if (this.state.AccountType === '') {
+        alert("Please Account Type");
+        return;
+      }
+      else {
+        this.setState({ loading: true })
+        axios.post(`http://51.77.6.84:9110/UM/Register?RegenerateOTP=123456`,
+          {
+            "FirstName": FirstName,
+            "MiddleName": MiddleName,
+            "LastName": LastName,
+            "CellNo": CellNo,
+            "AccountType": AccountType,
+          }
+        )
+          .then((response) => {
+             console.log(response);
+            if (response.data === "OK") {
+              console.log(response.data)
+              this.setState({loading:false})
+              this.props.navigation.navigate('Home',{Phone:this.state.CellNo});
+            }
+            else {
+              this.setState({loading:false});
+              Alert.alert("Something Went wrong");
+            }
+          })
+          .catch(error => {
+            this.setState({loading:false});
+            Alert.alert("Login Id/Cell# already registered.");
+          })
+      }
+    }
+    catch (error) {
+      console.log(error)
+    }
+  }
+
+  renderButton() {
+    if (this.state.loading) {
+      return <SpinnerScreen />
+    }
+    return (
+      <TouchableOpacity
+        style={styles.btnContinue}
+        onPress={() => this.onSignup(this.state.FirstName, this.state.MiddleName,
+          this.state.LastName, this.state.CellNo, this.state.AccountType)}>
+        <Text style={styles.btnContinueText}>Register</Text>
+      </TouchableOpacity>
+    )
+  };

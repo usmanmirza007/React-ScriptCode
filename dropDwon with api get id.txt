@@ -1,0 +1,63 @@
+import { Dropdown } from 'react-native-material-dropdown';
+
+###################### id get################## 
+modelSelected = (value, index, data) => {
+
+    let cityId = data[index].id;
+    console.log("Make id", cityId);
+    this.setState({
+      modelId: cityId
+    })
+
+    console.log("Make id", this.state.modelId);
+  };
+
+###################### api #################
+  ModelFunction() {
+    let id = this.state.makeId
+    console.log("id", id)
+    fetch('http://51.77.6.84:9110/Com/VModel?MakeId=' + id, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+
+    }).then((response) => response.json())
+      .then((responseJson) => {
+        var len = responseJson.length;
+        let drop_down_data = [];
+        for (let i = 0; i < len; i++) {
+          // const data = responseJson[i];
+          // // alert(JSON.stringify(data));    
+          // console.log("make data",data)
+          drop_down_data.push({ value: responseJson[i].Model, id: responseJson[i].ModelId });
+          // this.state.drop_down_data.push({ value: responseJson.cities[i].name,id:responseJson.cities[i].id });
+        }
+        this.setState({ ModelCategory: drop_down_data })
+        console.log("data make", this.state.MakeCategory)
+        console.log("data model", this.state.ModelCategory)
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+  }
+
+############ drop down #############
+<View style={styles.InputStyle}>
+              <Dropdown
+                label="Model"
+                data={this.state.ModelCategory}
+                onChangeText={this.modelSelected}
+              />
+            </View>
+
+################### style #####################
+ InputStyle: {
+    backgroundColor: 'white',
+    marginRight: 15,
+    marginLeft: 15,
+    paddingLeft: 20,
+    marginTop: 10
+  },

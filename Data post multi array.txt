@@ -1,0 +1,99 @@
+register = () => {
+    // alert('ok')
+    console.log("check id", this.state.makeId, this.state.modelId, this.state.TransmissionId, this.state.servicesTypeId, this.state.servicesModelId, this.state.currencyId, this.state.fairUnitid)
+
+    const { RAID, makeId, modelId, modelYear, engineCapacity, TransmissionId, servicesModelId, isActive, servicesTypeId, dayId, is24hor, selectedTimeFrom, selectedTimeTo, currencyId, fairAmount, fairUnitid, additionalFair, fairTimeForm, fairTimeTo, applicableFromDateTime, isNegotiable, image, isMainImage } = this.state;
+    if (modelYear === '') {
+      alert("Please Enter model year");
+      return;
+    }
+    else {
+      fetch('http://51.77.6.84:9110/AG/AddVehicle', {
+
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          // RAID: RAID,
+          // MakeId: makeId,
+          // ModelId: modelId,
+          // EngineCapacity: engineCapacity,
+          // TransmissionTypeId: TransmissionId,
+          // ServiceModeId: servicesModelId,
+          // IsActive: isActive,
+          // ServiceTypeId: servicesTypeId,
+          // DayId: dayId,
+          // Is24Hrs: is24hor,
+          // FromTime: selectedTimeFrom,
+          // ToTime: selectedTimeTo,
+          // CurrencyId: currencyId,
+          // FairAmount: fairAmount,
+          // FairUnitId: fairUnitid,
+          // AdditionalFair: additionalFair,
+          // AddTimeFrom: fairTimeForm,
+          // AddTimeTo: fairTimeTo,
+          // ApplicableFrom: applicableFromDateTime,
+          // IsNegotiable: isNegotiable,
+          // Picture: image,
+          // IsMainImage: isMainImage
+            RAID: "3482229660",
+            MakeId: makeId,
+            ModelId: modelId,
+            ModelYear: modelYear,
+            EngineCapacity: engineCapacity,
+            TransmissionTypeId: TransmissionId,
+            ServiceModeId: servicesModelId,
+            IsActive: isActive,
+            VServiceDetail: [
+              {
+                ServiceTypeId: servicesTypeId
+              }
+            ],
+            VADetail: [
+              {
+                DayId: dayId,
+                Is24Hrs: true,
+                FromTime: selectedTimeFrom,
+                ToTime: selectedTimeTo
+              }
+            ],
+            VFairDetail: [
+              {
+                CurrencyId: currencyId,
+                FairAmount: fairAmount,
+                FairUnitId: fairUnitid,
+                AdditionalFair: additionalFair,
+                AddTimeFrom: fairTimeForm,
+                AddTimeTo: fairTimeTo,
+                ApplicableFrom: applicableFromDateTime,
+                IsNegotiable: true
+              }
+            ],
+            VPicture: [
+              {
+                Picture: image,
+                IsMainImage: true
+              }
+            ]
+        })
+      }).then((response) => response.json())
+        .then((responseJson) => {
+          console.log("register", responseJson);
+          if (responseJson === "OK") {
+           Alert.alert('You Are Registered');
+            // this.props.navigation.navigate('otp', {uid:responseJson.user.id});
+          }
+          else{
+           Alert.alert('You Are Not Registered Something Went Wrong');
+          
+          }
+
+          // alert(responseJson);
+        })
+        .catch((error) => {
+          alert(error);
+        });
+    }
+  }

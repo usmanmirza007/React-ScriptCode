@@ -1,0 +1,42 @@
+################## splash ##################
+
+  constructor(props) {
+    super(props);
+    this.decisionToNavigate = this.decisionToNavigate.bind(this);
+}
+
+  componentDidMount() {
+      
+    setTimeout(() => {
+
+        this.decisionToNavigate();
+
+    }, 3000);
+}
+
+decisionToNavigate() {
+    const {navigate} = this.props.navigation;
+    AsyncStorage.getItem("userId").then((value) => {
+        if (value) {
+                const {navigate} = this.props.navigation;
+                navigate("splash");
+        }
+        else {
+            navigate("splash");
+        }
+    }).catch(function (err) {
+        Alert.alert(err.toString())
+    }).done();
+}
+
+
+##################### logout button remove id #############
+
+ async RemoveAsync() {
+    try {
+      await AsyncStorage.removeItem('userId');
+      this.props.navigation.navigate('splash')
+    } catch (e) {
+      console.log("error in set id");
+    }
+  }

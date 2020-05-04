@@ -1,0 +1,58 @@
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+ 
+
+this.state = {
+      Gender: '',
+      age: '',
+      data: [],
+      counter: 0,
+      shopCategory: [],
+      dataId: ''
+    };
+
+const Checkbox = ({ checked, onPress }) => (
+  <Icon size={25} onPress={() => onPress()} name={checked ? 'checkbox-marked' : 'checkbox-blank-outline'} />
+)
+
+#################### api #######################
+
+componentDidMount() {
+    this.getData()
+
+  }
+  getData() {
+    let url = 'http://aajo.in/public/api/categorylist';
+    fetch(url)
+      .then(r => r.json())
+      .then(response => this.setState({
+
+        data: response.list.map(r => {
+          console.log(response.list)
+          r.checked = false;
+          return r;
+        })
+      }))
+      .catch(e => console.log(e))
+  }
+
+  setChecked(i) {
+    const data = this.state.data;
+    data[i].checked = !data[i].checked;
+    this.setState({ data });
+    console.log("data", this.state.data)
+
+    this.state.dataId = data[i].id
+    console.log("id", this.state.dataId)
+  }
+
+################### view data ##########################
+
+ <FlatList data={this.state.data}
+            renderItem={({ item, index }) => (
+
+              <View style={{ padding: 20, flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: wp('5%') }}>
+                <Text style={{ color: '#666666', fontSize: 18 }}>{item.category_name}</Text>
+                <Checkbox onPress={() => this.setChecked(index)} checked={item.checked} />
+              </View>
+            )}
+          />

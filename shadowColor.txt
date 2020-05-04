@@ -1,0 +1,41 @@
+import {View, Text, TouchableOpacity} from 'react-native';
+class App extends Component {
+  render() {
+    return (<View style={styles.container}>
+      <View>
+        <TouchableOpacity style={[styles.boxShadow, shadow]}>
+          <Text style={styles.text}>LOGIN</Text>
+        </TouchableOpacity>
+      </View>
+    </View>);
+  }
+}
+const shadow = {
+  shadowColor: '#30C1DD',
+  shadowRadius: 10,
+  shadowOpacity: 0.6,
+  elevation: 8,
+  shadowOffset: {
+    width: 0,
+    height: 4
+  }
+}
+const styles = {
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  boxShadow: {
+    width: 200,
+    height: 50,
+    borderRadius: 10,
+    backgroundColor: '#ed7171',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  text: {
+    color: '#ffffff'
+  }
+};
+export default App;

@@ -1,0 +1,56 @@
+ 
+import DateTimePicker from "react-native-modal-datetime-picker";
+import moment from 'moment';
+constructor(props) {
+        super(props)
+        this.state = {
+            date: '',
+            time: '',
+            isDateTimePickerVisible: false 
+        }
+    }
+    _showDateTimePicker = () => this.setState({ isDateTimePickerVisible: true });
+  handlePicker = (datetime) => {
+    this.setState({
+        isVisible: false,
+        chooseDate: moment(datetime).format('MM-DD-YYYY')
+    })
+  };
+
+  hidePicker = () => {
+    this.setState({
+        isVisible: false,
+        
+    })
+  };
+
+  showPicker = () => {
+    this.setState({
+        isVisible: true,
+    })
+  };
+ <TouchableOpacity onPress={this.showPicker}>
+            <TextInput
+              style={styles.input1}
+              mode='outlined'
+              theme={{
+                colors: {
+                  primary: '#00cb9c',
+                }
+              }}
+            //   label='Offer Description'
+              placeholder="Select Expire Date"
+              placeholderTextColor = {'#666666'}
+              editable = {false}
+              value={this.state.chooseDate}
+              onChangeText={chooseDate => this.setState({ chooseDate })}
+            />
+            </TouchableOpacity>
+            
+            <DateTimePickerModal
+                isVisible={this.state.isVisible}
+                onConfirm={this.handlePicker}
+                onCancel={this.hidePicker}
+                mode={'date'}
+                datePickerModeAndroid={'spinner'}
+            />

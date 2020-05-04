@@ -1,0 +1,25 @@
+  {/*  <Input
+              placeholder='User Name'
+              placeholderTextColor='#fff'
+              leftIcon={<Icon
+                // reverse
+                name='user'
+                type='font-awesome'
+                color='#fff'
+              />}
+              containerStyle={{ marginVertical: '5%' }}
+            />
+
+            <Input
+              placeholder='Password'
+              placeholderTextColor='#fff'
+              // inputContainerStyle={{marginVertical:'3%',marginHorizontal:'5%'}}
+              // inputStyle={{marginLeft:'5%'}}
+              leftIcon={<Icon
+                // reverse
+                name='lock'
+                type='font-awesome'
+                color='#fff'
+              />}
+            />
+*/}

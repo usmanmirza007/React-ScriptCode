@@ -1,0 +1,36 @@
+ radio_props: [
+        { gender: 0, label: 'Male' },
+        { gender: 1, label: 'Female' },
+      ],
+
+<View style={styles.mainRadioView}>
+              <Text style={styles.choose}>Choose Gender</Text>
+              <View style={styles.radioButton}>
+                <RadioForm
+                  radio_props={this.state.radio_props}
+                  style={{ marginTop: 0, }}
+                  initial={0}
+                  radioStyle={{ padding: 3, marginRight: 50 }}
+                  buttonColor={'#666666'}
+                  buttonSize={10}
+                  selectedButtonColor={'#00cb9c'}
+                  formHorizontal={true}
+                  onPress={gender => this.setState({ gender })}
+                //buttonOuterSize={10}
+                />
+              </View>
+            </View>
+
+############
+ radioButton: {
+    marginRight: 30,
+    marginTop: 10
+  },
+  mainRadioView: {
+    marginLeft: wp('5%'),
+    marginTop: hp('3%')
+  },
+  choose: {
+    fontSize: 15,
+    color: '#666666'
+  }

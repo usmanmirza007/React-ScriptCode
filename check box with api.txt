@@ -1,0 +1,66 @@
+
+
+#################################################
+ subCategory() {
+        let id = this.state.shopId
+        console.log("id", id)
+        fetch(`http://aajo.in/public/api/subcategorylist/${id}`, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+
+        }).then((response) => response.json())
+            .then((responseJson) => {
+                console.log("sub category ", responseJson.list[0])
+                if (responseJson.success == "1") {
+                    var len = responseJson.list.length;
+                    let drop_down_data = [];
+                    let data
+                    for (let i = 0; i < len; i++) {
+                        //  data = responseJson.list[i].category_name;
+                        // alert(JSON.stringify(data))
+                        // console.log("make data",data)
+
+                        drop_down_data.push({ value: responseJson.list[i].category_name})
+                        // drop_down_data = responseJson.list[i].category_name
+                        // this.state.drop_down_data.push({ value: responseJson.cities[i].name,id:responseJson.cities[i].id });
+                    }
+                    this.setState({ responseData: drop_down_data })
+                    console.log("state dataa",this.state.responseData)
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }
+
+#####################################################
+
+ renderDayRow = ({ item, }) => {
+        console.log("item",item.value)
+        return (
+            <View style={styles.main}>
+                <CheckBox
+                    style={{ marginHorizontal: wp('0%'), marginVertical: hp('2%') }}
+                    onClick={() => {
+                        this.setState({
+                            isChecked2: !this.state.isChecked2
+                        })
+                    }}
+                    isChecked={this.state.isChecked2}
+                    leftText={item.value}
+                    
+                    leftTextStyle={{ color: '#666666', fontSize: 18 }}
+                />
+                <View style={styles.border}></View>
+            </View>
+        )
+    }
+########################################################
+<FlatList
+                            data={this.state.responseData}
+                            renderItem={this.renderDayRow}
+                        
+                        />

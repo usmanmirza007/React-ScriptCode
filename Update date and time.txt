@@ -1,0 +1,111 @@
+import DateTimePickerModal from "react-native-modal-datetime-picker"
+import moment from 'moment';
+
+ this.state = {
+            chooseDate: '',
+            isVisibleDate: false,
+            chooseTime: '',
+            isVisibleTime: false
+        }
+
+// #################### Date picker ########################
+    handlePicker = (date) => {
+        this.setState({
+            isVisibleDate: false,
+            chooseDate: moment(date).format('MM-DD-YYYY')
+        })
+    };
+
+    hidePicker = () => {
+        this.setState({
+            isVisibleDate: false,
+
+        })
+    };
+
+    showPicker = () => {
+        this.setState({
+            isVisibleDate: true,
+        })
+    };
+
+    // ########################## Time Picker #################
+
+    handleTimePicker = (time) => {
+        this.setState({
+            isVisibleTime: false,
+            chooseTime: moment(time).format('h:mm:ss')
+        })
+    };
+
+    hideTimePicker = () => {
+        this.setState({
+            isVisibleTime: false,
+
+        })
+    };
+
+    showTimePicker = () => {
+        this.setState({
+            isVisibleTime: true,
+        })
+    };
+
+
+<View style={styles.dateTime}>
+                    <TouchableOpacity style={[styles.input1, shadow]} onPress={this.showPicker}>
+                        <TextInput
+                            style={{ alignSelf: 'center', color: '#5565bb', fontWeight: '500', }}
+                            
+                            //   label='Offer Description'
+                            placeholder="Date"
+                            placeholderTextColor={'#5565bb'}
+                            editable={false}
+                            value={this.state.chooseDate}
+                            onChangeText={chooseDate => this.setState({ chooseDate })}
+                        />
+
+                    </TouchableOpacity>
+                    <DateTimePickerModal
+                        isVisible={this.state.isVisibleDate}
+                        onConfirm={this.handlePicker}
+                        onCancel={this.hidePicker}
+                        mode={'date'}
+                        datePickerModeAndroid={'spinner'}
+                    />
+
+                    <TouchableOpacity style={[styles.input1, shadow]} onPress={this.showTimePicker}>
+                        <TextInput
+                            style={{ alignSelf: 'center', color: '#5565bb', fontWeight: '500'  }}
+                            
+                            //   label='Offer Description'
+                            placeholder="Time"
+                            placeholderTextColor={'#5565bb'}
+                            editable={false}
+                            value={this.state.chooseTime}
+                            onChangeText={chooseTime => this.setState({ chooseTime })}
+                        />
+
+                    </TouchableOpacity>
+                    <DateTimePickerModal
+                        isVisible={this.state.isVisibleTime}
+                        onConfirm={this.handleTimePicker}
+                        onCancel={this.hideTimePicker}
+                        mode={'time'}
+                        datePickerModeAndroid={'spinner'}
+                    />
+                </View>
+
+
+ input1: {
+        width: wp('45%'),
+        height: hp('10%'),
+        backgroundColor: '#fff',
+        borderRadius: 10,
+
+    },
+    dateTime: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginTop: hp('30%'),
+    },

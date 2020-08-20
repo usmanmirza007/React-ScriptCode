@@ -1,0 +1,254 @@
+import React, { Component } from 'react';
+import {
+    StyleSheet,
+    Text,
+    View,
+    TextInput,
+    TouchableOpacity
+} from 'react-native';
+import { connect } from 'react-redux';
+// import DateTimePickerModal from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker"
+import moment from 'moment';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import Icon from 'react-native-vector-icons/Ionicons'
+import EnIcon from 'react-native-vector-icons/Entypo'
+import { setDate, setTime } from '../redux/action/actionSetData'
+
+class date_time extends Component {
+
+    constructor(props) {
+        super(props)
+        this.state = {
+            chooseDate: '',
+            isVisibleDate: false,
+            chooseTime: '',
+            isVisibleTime: false,
+            show: true,
+            showDateTime: false
+        }
+    }
+    // #################### Date picker ########################
+    handlePicker = (date) => {
+        this.setState({
+            isVisibleDate: false,
+            chooseDate: moment(date).format('MM-DD-YYYY'),
+            chooseTime: moment(date).format('h:mm:ss'),
+            show: false,
+            showDateTime: true
+        })
+        console.log("date", this.state.chooseDate, this.state.chooseTime);
+    };
+
+    hidePicker = () => {
+        this.setState({
+            isVisibleDate: false,
+
+        })
+    };
+
+    showPicker = () => {
+        this.setState({
+            isVisibleDate: true,
+        })
+    };
+
+    // ########################## Time Picker #################
+
+    handleTimePicker = (time) => {
+        this.setState({
+            isVisibleTime: false,
+            chooseTime: moment(time).format('h:mm:ss')
+        })
+    };
+
+    hideTimePicker = () => {
+        this.setState({
+            isVisibleTime: false,
+
+        })
+    };
+
+    showTimePicker = () => {
+        this.setState({
+            isVisibleTime: true,
+        })
+    };
+
+    render() {
+        return (
+            <View style={styles.container}>
+                <TouchableOpacity onPress={() => { this.props.navigation.navigate('needARide') }} style={[styles.locationView, shadow]}>
+                    <Text style={styles.loc}>Location</Text>
+                    <Text style={styles.locationText}>{this.props.text}</Text>
+                    {/* <TextInput style={styles.locationText}
+                    editable = {false}
+                    value = {this.props.text} /> */}
+                </TouchableOpacity>
+                {this.state.show && <TouchableOpacity style={[styles.selectDate, shadow]} onPress={this.showPicker}>
+                    <Text style={styles.selectText}>Select Date & Time</Text>
+                    <DateTimePickerModal
+                        isVisible={this.state.isVisibleDate}
+                        onConfirm={this.handlePicker}
+                        onCancel={this.hidePicker}
+                        mode={'datetime'}
+                        datePickerModeAndroid={'spinner'}
+                    />
+                </TouchableOpacity>}
+                {this.state.showDateTime && <View>
+                    <View style={styles.dateTime}>
+                        <TouchableOpacity style={[styles.input1, shadow]} onPress={this.showPicker}>
+                            <TextInput
+                                style={{ alignSelf: 'center', color: '#5565bb', fontWeight: '500', }}
+
+                                //   label='Offer Description'
+                                placeholder="Date"
+                                placeholderTextColor={'#5565bb'}
+                                editable={false}
+                                value={this.state.chooseDate}
+                                onChangeText={chooseDate => this.setState({ chooseDate })}
+                            // onChangeText={chooseDate => this.setState({ chooseDate }, () => {this.props.dateCall(chooseDate)})}
+
+                            />
+                        </TouchableOpacity>
+                        <DateTimePickerModal
+                            isVisible={this.state.isVisibleDate}
+                            onConfirm={this.handlePicker}
+                            onCancel={this.hidePicker}
+                            mode={'date'}
+                            datePickerModeAndroid={'spinner'}
+                        />
+                        <TouchableOpacity style={[styles.input1, shadow]} onPress={this.showTimePicker}>
+                            <TextInput
+                                style={{ alignSelf: 'center', color: '#5565bb', fontWeight: '500' }}
+                                placeholder="time"
+                                placeholderTextColor={'#5565bb'}
+                                editable={false}
+                                value={this.state.chooseTime}
+                                onChangeText={chooseTime => this.setState({ chooseTime })}
+                            />
+
+                        </TouchableOpacity>
+                        <DateTimePickerModal
+                            isVisible={this.state.isVisibleTime}
+                            onConfirm={this.handleTimePicker}
+                            onCancel={this.hideTimePicker}
+                            mode={'time'}
+                            datePickerModeAndroid={'spinner'}
+                        />
+                    </View>
+                    <View style={styles.icon}>
+                        <EnIcon style={styles.IconStyle} name={'calendar'} size={30} color="#5565bb" />
+                        <Icon style={styles.IconStyle} name={'time-outline'} size={30} color="#5565bb" />
+                    </View>
+                    <TouchableOpacity onPress={() => { this.props.navigation.navigate('searchRide') }}
+                        style={styles.continue}>
+                        <Text style={styles.text}>Search Rides</Text>
+                    </TouchableOpacity>
+                </View>}
+
+            </View>
+        );
+    }
+}
+const shadow = {
+    shadowColor: '#30C1DD',
+    shadowRadius: 10,
+    shadowOpacity: 0.6,
+    elevation: 8,
+    shadowOffset: {
+        width: 0,
+        height: 4
+    }
+}
+
+
+const mapStateToProps = (state) => ({
+    text: state.setData.text,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    timeCall: (time) => dispatch(setTime(time)),
+    dateCall: (date) => dispatch(setTime(date)),
+    addFood: (text) => dispatch(addFood(text)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(date_time);
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        // justifyContent: 'center',
+        // alignItems: 'center',
+        backgroundColor: '#F1F5F8',
+        // '#bdbdbd'
+    },
+    loc: {
+        marginLeft: wp('5%'),
+        marginTop: -10,
+        color: '#5565bb'
+    },
+    locationView: {
+        backgroundColor: '#fff',
+        width: wp('90%'),
+        marginHorizontal: wp('5%'),
+        height: hp('15%'),
+        justifyContent: 'center',
+        borderRadius: 10,
+        marginTop: hp('5%'),
+    },
+    locationText: {
+        marginLeft: wp('5%'),
+        fontSize: 25,
+        color: '#5565bb'
+    },
+    input1: {
+        width: wp('45%'),
+        height: hp('10%'),
+        backgroundColor: '#fff',
+        borderRadius: 10,
+
+    },
+    selectText: {
+        alignSelf: 'center',
+        color: '#fff',
+        fontSize: 25,
+        fontWeight: '900'
+    },
+    selectDate: {
+        width: wp('90%'),
+        height: hp('10%'),
+        backgroundColor: '#5565bb',
+        borderRadius: 10,
+        marginHorizontal: wp('5%'),
+        justifyContent: 'center',
+        marginTop: hp('30%'),
+    },
+    dateTime: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginTop: hp('15%'),
+    },
+    continue: {
+        position: 'absolute',
+        zIndex: 1,
+        backgroundColor: '#5565bb',
+        marginTop: hp('50%'),
+        width: wp('80%'),
+        height: hp('10%'),
+        alignSelf: 'center',
+        borderRadius: 30,
+        justifyContent: 'center'
+    },
+    text: {
+        alignSelf: 'center',
+        fontSize: 15,
+        color: '#fff',
+        fontWeight: '700'
+    },
+    icon: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginTop: hp('3%'),
+    }
+});

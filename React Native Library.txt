@@ -14,7 +14,8 @@
 3 npx react-native init AwesomeProject
 4 npx react-native run-android
 #####################################################
-
+1 npm install react-native-rename -g
+2 react-native-rename "MyApp"
 ##################### Library #######################
 1 npm i react-native-gesture-handler --save
 2 npm i react-navigation-drawer --save
@@ -26,6 +27,7 @@
 8 npm i react-native-paper --save
 9 npm install react-redux
 10 npm i redux --save
+10 npm i react-thunk --save
 11 npm i react-native-google-places-autocomplete --save
 12 npm i react-native-maps --save
 13 npm i @react-native-community/geolocation --save

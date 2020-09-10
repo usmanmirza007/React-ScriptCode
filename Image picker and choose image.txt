@@ -1,0 +1,48 @@
+
+######################## android/build.gradle>allprojects>repositories ###########################
+maven { url 'https://www.jitpack.io' }
+         // ADD THIS
+        maven { url 'https://maven.google.com' }
+######################### android/app/build.gradle #######################
+vectorDrawables.useSupportLibrary = true
+######################## androdiManifest ####################
+<uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
+######################################################
+import ImagePicker from 'react-native-image-crop-picker';
+
+  takePhoto() {
+        ImagePicker.openCamera({
+            width: 300,
+            height: 400,
+            cropping: true,
+          }).then(image => {
+            console.log(image);
+          });
+    }
+    choosePhoto() {
+        ImagePicker.openPicker({
+            width: 300,
+            height: 400,
+            cropping: true
+          }).then(image => {
+            console.log(image);
+          });
+    }
+
+ <View style={styles.rowView}>
+                        <TouchableOpacity onPress={() => this.props.navigation.navigate('GPS')} style={styles.mainView}>
+                            <Image source={require('./../image/loc.png')} style={styles.imageFirst} resizeMode='stretch' />
+                            <Text style={styles.test}>GPS</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => this.takePhoto()} style={styles.mainView}>
+                            <Image source={require('./../image/camera.png')} style={styles.imageFirst2} resizeMode='stretch' />
+                            <Text style={styles.test}>Camera</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => this.choosePhoto()} style={styles.mainView}>
+                            <Image source={require('./../image/chat.png')} style={styles.imageFirst} resizeMode='stretch' />
+                            <Text style={styles.test}>Facebook</Text>
+                            <Text style={styles.test}>Messenger</Text>
+                        </TouchableOpacity>
+                    </View>

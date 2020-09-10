@@ -16,15 +16,52 @@
 #####################################################
 1 npm install react-native-rename -g
 2 react-native-rename "MyApp"
+3 1394335090957174
+4 npx react-native doctor
+
+####################### Sign APK ####################
+go to project dictoryu
+1 keytool -genkeypair -v -keystore my-upload-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000
+2 Edit the file ~/.gradle/gradle.properties or android/gradle.properties,
+
+MYAPP_UPLOAD_STORE_FILE=my-upload-key.keystore
+MYAPP_UPLOAD_KEY_ALIAS=my-key-alias
+MYAPP_UPLOAD_STORE_PASSWORD=*****
+MYAPP_UPLOAD_KEY_PASSWORD=*****
+
+3 android/app/build.gradle
+
+signingConfigs {
+        release {
+            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
+                storeFile file(MYAPP_UPLOAD_STORE_FILE)
+                storePassword MYAPP_UPLOAD_STORE_PASSWORD
+                keyAlias MYAPP_UPLOAD_KEY_ALIAS
+                keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            }
+        }
+    }
+ buildTypes {
+        release {
+            ...
+            signingConfig signingConfigs.release
+        }
+    }
+4 two type cmd .aab and .apk
+Go to android folder
+	4.1 gradlew bundleRelease 	// for .aab
+	4.2 gradlew assembleRelease	// for .apk
 ##################### Library #######################
 1 npm i react-native-gesture-handler --save
+1 npm i react-navigation-material-bottom-tabs --save
 2 npm i react-navigation-drawer --save
 3 npm i react-navigation-stack --save
 4 npm i react-navigation --save
-5 npm install react-native-reanimated
+5 npm i react-native-reanimated
 6 npm i react-native-screens --save
-7 npm install react-native-safe-area-context @react-native-community/masked-view
+7 npm i react-native-safe-area-context @react-native-community/masked-view
 8 npm i react-native-paper --save
+8 npm i react-native-responsive-screen --save
 9 npm install react-redux
 10 npm i redux --save
 10 npm i react-thunk --save
@@ -34,3 +71,7 @@
 14 npm i react-native-geolocation-service --save
 15 import EnIcon from 'react-native-vector-icons/Entypo'
 16 npm i react-native-vector-icons --save
+17 npm i react-native-multiple-select 		// multi selection dropdown
+18 npm i react-native-chart-kit --save
+19 npm i react-native-svg --save
+20 npm i react-native-webview --save

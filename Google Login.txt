@@ -1,0 +1,79 @@
+import {
+    GoogleSignin,
+    GoogleSigninButton,
+    statusCodes,
+} from '@react-native-community/google-signin';
+GoogleSignin.configure({
+    offlineAccess: false,
+        // webClientId:'999697635442-kbe7rblrigie09a05mctkurh9p4knj55.apps.googleusercontent.com',
+        androidClientId: '999697635442-kbe7rblrigie09a05mctkurh9p4knj55.apps.googleusercontent.com',
+        scopes: ['profile', 'email']
+    // scopes: ['https://www.googleapis.com/auth/drive.readonly'], // what API you want to access on behalf of the user, default is email and profile
+    // webClientId: '999697635442-kbe7rblrigie09a05mctkurh9p4knj55.apps.googleusercontent.com', // client ID of type WEB for your server (needed to verify user ID and offline access)
+    // offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
+    // hostedDomain: '', // specifies a hosted domain restriction
+    // androidCliendId: '999697635442-kbe7rblrigie09a05mctkurh9p4knj55.apps.googleusercontent.com',
+    // loginHint: '', // [iOS] The user's ID, or email address, to be prefilled in the authentication UI if possible. [See docs here](https://developers.google.com/identity/sign-in/ios/api/interface_g_i_d_sign_in.html#a0a68c7504c31ab0b728432565f6e33fd)
+    // forceCodeForRefreshToken: true, // [Android] related to `serverAuthCode`, read the docs link below *.
+    // accountName: '', // [Android] specifies an account name on the device that should be used
+    // iosClientId: '<FROM DEVELOPER CONSOLE>', // [iOS] optional, if you want to specify the client ID of type iOS (otherwise, it is taken from GoogleService-Info.plist)
+});
+
+  googleSignIn = async () => {
+        try {
+            console.log("login");
+            await GoogleSignin.hasPlayServices();
+            const userInfo = await GoogleSignin.signIn();
+            console.log("info", userInfo.user.email);
+            const name = userInfo.user.name
+            const email = userInfo.user.email
+            const image = userInfo.user.photo
+            this.setState({
+                // userGoogleInfo: userInfo,
+                gName: name,
+                gEmail: email,
+                gPhoto: image,
+                loaded: true
+            });
+            {this.props.navigation.navigate('tab', {NAME: this.state.gName, IMAGE: this.state.gPhoto})}
+
+        } catch (error) {
+            // console.log("err",error);
+            if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+                console.log('user cancelled the login flow');
+            } else if (error.code === statusCodes.IN_PROGRESS) {
+                console.log('operation (e.g. sign in) is in progress already');
+            } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+                console.log('play services not available or outdated');
+            } else {
+                console.log('some other error happened');
+            }
+        }
+    };
+
+
+
+ <View style={{alignItems: 'center'}}>
+                    <GoogleSigninButton
+                        style={{ width: 192, height: 48 }}
+                        size={GoogleSigninButton.Size.Wide}
+                        color={GoogleSigninButton.Color.Dark}
+                        onPress={this.googleSignIn}
+                    />
+                </View>
+
+go to setting.gradle and past it
+include ':react-native-google-signin', ':app'
+
+ ext {
+        buildToolsVersion = "29.0.2"
+        minSdkVersion = 23
+        compileSdkVersion = 29
+        targetSdkVersion = 29
+        androidMapsUtilsVersion = "0.5+"
+        googlePlayServicesVersion = "17.0.0"
+    }
+
+below ext dependencies > past it
+
+        classpath 'com.google.gms:google-services:4.1.0'

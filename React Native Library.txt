@@ -2,23 +2,34 @@
 1 npm init				// create 
 2 npm install -g json-server		// install json
 3 json-server --watch db.json		// start server
-####################################################
+######################## Git #######################
+1 git init 
+2 git checkout -b xyz
+3 git add .
+4 git commit -m "first commit"
+5 git remote add origin git@github.com:usmanmirza007/ns-vuex-store.git
+6 git push origin master
+7 git reset --hard
+###################### hash key #####################
+RUN: go c user/user and run this cmd before run cmd set the path openssl
+1 keytool -exportcert -alias androiddebugkey -keystore "C:\User\1\.android\debug.keystore" | "C:\openssl-0.9.8k_X64\bin\openssl" sha1 -binary | "C:\openssl-0.9.8k_X64\bin\openssl" base64
 
-###################### hash key ####################
-1 keytool -exportcert -alias androiddebugkey -keystore C:\Documents and Settings\Administrator.android\debug.keystore | C:\openssl-0.9.8k_X64\bin\openssl sha1 -binary | C:\openssl-0.9.8k_X64\bin\openssl" base64
-####################################################
+###################### key store SHA1 ####################
+go c/user/user/.andorid then run
+1 keytool -list -v -keystore debug.keystore -alias androiddebugkey -storepass android -keypass android
 
 ###################### react native Env ############
 1 choco install -y nodejs.install python2 jdk8
 2 npm install -g react-native-cli 
 3 npx react-native init AwesomeProject
 4 npx react-native run-android
-#####################################################
+###################### Rename project ##############
 1 npm install react-native-rename -g
 2 react-native-rename "MyApp"
 3 1394335090957174
 4 npx react-native doctor
-
+################snytex of getParam ################
+ image: this.props.navigation.getParam('IMAGE'),
 ####################### Sign APK ####################
 go to project dictoryu
 1 keytool -genkeypair -v -keystore my-upload-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000
@@ -52,26 +63,32 @@ Go to android folder
 	4.1 gradlew bundleRelease 	// for .aab
 	4.2 gradlew assembleRelease	// for .apk
 ##################### Library #######################
-1 npm i react-native-gesture-handler --save
-1 npm i react-navigation-material-bottom-tabs --save
-2 npm i react-navigation-drawer --save
-3 npm i react-navigation-stack --save
-4 npm i react-navigation --save
-5 npm i react-native-reanimated
-6 npm i react-native-screens --save
-7 npm i react-native-safe-area-context @react-native-community/masked-view
-8 npm i react-native-paper --save
-8 npm i react-native-responsive-screen --save
-9 npm install react-redux
-10 npm i redux --save
-10 npm i react-thunk --save
-11 npm i react-native-google-places-autocomplete --save
-12 npm i react-native-maps --save
-13 npm i @react-native-community/geolocation --save
-14 npm i react-native-geolocation-service --save
-15 import EnIcon from 'react-native-vector-icons/Entypo'
-16 npm i react-native-vector-icons --save
-17 npm i react-native-multiple-select 		// multi selection dropdown
-18 npm i react-native-chart-kit --save
-19 npm i react-native-svg --save
-20 npm i react-native-webview --save
+1 npm i react-native-gesture-handler --save						// gesture handler
+1 npm i react-navigation-material-bottom-tabs --save					// bottom tab
+2 npm i react-navigation-drawer --save							// drawer navigation
+3 npm i react-navigation-stack --save							// stack navigation
+4 npm i react-navigation --save								// navigation
+5 npm i react-native-reanimated --save							// reanimated
+6 npm i react-native-screens --save							// screen
+7 npm i react-native-safe-area-context @react-native-community/masked-view		// masked view
+8 npm i react-native-paper --save							// paper 
+8 npm i react-native-responsive-screen --save						// responsive
+9 npm i react-redux									// redux
+10 npm i redux --save									// redux
+10 npm i react-thunk --save								// redux thunk
+11 npm i react-native-google-places-autocomplete --save					// auto complete
+12 npm i react-native-maps --save							// map
+13 npm i @react-native-community/geolocation --save					// geo location
+14 npm i react-native-geolocation-service --save					// geo location services
+15 import EnIcon from 'react-native-vector-icons/Entypo'			
+16 npm i react-native-vector-icons --save						// icon
+17 npm i react-native-multiple-select 							// multi selection dropdown
+18 npm i react-native-chart-kit --save							// chart
+19 npm i react-native-svg --save							// chart
+20 npm i react-native-webview --save							// webView
+21 npm i react-native-simple-radio-button --save					// radio
+22 npm i react-native-elements --save							// element
+23 npm i react-native-image-crop-picker --save						// imagge picker
+24 npm cache clean --force								// cache clean
+25 npm i moment										// moment
+26 npm i react-native-modal-datetime-picker --save					// date and time picker

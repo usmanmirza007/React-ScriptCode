@@ -1,0 +1,68 @@
+################# add ######################
+ addPrediction(){
+        const {predict} = this.state
+        const db = Firebase.database().ref('addPredict/')
+        db.push({
+            prediction: predict
+        })
+        this.setState({
+            predict: ''
+        })
+    }
+
+################# delete ###################
+ deleteItem(key){
+        Firebase.database().ref(`addPredict/${key}`).remove()
+    }
+
+################ get ###################
+
+  componentDidMount() {
+        const db = Firebase.database().ref('addPredict/')
+        db.on('value', (snapshot) => {
+            var li = []
+            snapshot.forEach((child) => {
+                li.push({
+                    key: child.key,
+                    text: child.val().prediction,
+                })
+            })
+            console.warn(this.state.imagesMost);
+            this.setState({ imagesMost: li })
+        })
+    }
+
+#################### update ############
+ async updateItem(key){
+        const {predict} = this.state
+        await Firebase.database().ref(`addPredict/${key}`).update({prediction: predict})
+    }
+
+################ image uri upload ######
+ handleChoosePhoto = () => {
+        const options = {
+            noData: true,
+        }
+        ImagePicker.launchImageLibrary(options, response => {
+            console.log('res', response);
+            if (response.uri) {
+                UUIDGenerator.getRandomUUID((uuid) => {
+                    console.log("uri",response.uri,);
+                    const Url = response.uri
+                    this.addPrediction(Url)
+                    this.setState({
+                        photo: response,
+                    })
+
+                })
+            }
+        })
+    }
+
+
+  addPrediction(uri){
+        const db = Firebase.database().ref('image/')
+        db.push({
+            imageUrl: uri
+        })
+    }

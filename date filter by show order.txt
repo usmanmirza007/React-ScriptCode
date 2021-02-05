@@ -1,0 +1,9 @@
+ const orderDetails = selectors.completedOrder();
+  const [dateFrom, setDateFrom] = useState(new Date())
+  const [dateTo, setDateTo] = useState(new Date())
+  const [completeOrder, setCompleteOrder] = useState([]);
+
+  useEffect(() => {
+    const items = orderDetails.filter((value) => dateFrom >= value.completed_at || value.completed_at <= dateTo)
+    setCompleteOrder(items)
+  }, [dateTo, dateFrom]);

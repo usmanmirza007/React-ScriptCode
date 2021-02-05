@@ -1,0 +1,24 @@
+
+    
+
+<Viewstyle={​​​​​​​​{​​​​​​​​flexDirection:'row', marginLeft:41,}​​​​​​​​}​​​​​​​​>
+<Viewstyle={​​​​​​​​{​​​​​​​​flexDirection:'row', marginLeft:5}​​​​​​​​}​​​​​​​​>
+{​​​​​​​​[1, 2, 3, 4, 5].map((e) => (
+<View>
+<TouchableOpacityonPress={​​​​​​​​() =>this.setState({​​​​​​​​stars:e}​​​​​​​​)}​​​​​​​​>
+<Star
+size={​​​​​​​​20}​​​​​​​​
+name={​​​​​​​​
+e < this.state.stars || e == this.state.stars
+                          ? 'star'
+                          : 'staro'
+}​​​​​​​​
+color={​​​​​​​​colors.star}​​​​​​​​
+/>
+</TouchableOpacity>
+</View>
+              ))}​​​​​​​​
+</View>
+<Text>4.1 (18012 Delivery Reviews)</Text>
+</View>
+

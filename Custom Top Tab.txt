@@ -1,0 +1,306 @@
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  StyleSheet,
+} from 'react-native';
+import HomeHeader from './HeaderHome';
+import Icon from 'react-native-vector-icons/dist/FontAwesome';
+
+import * as selectors from '@redux/selectors'
+import * as Actions from '@redux/actions'
+
+import Favourite from './Favourites';
+import { useDispatch } from 'react-redux';
+
+export default () => {
+
+  const dispatch = useDispatch();
+
+  const [selectedTab, setSelectedTab] = useState('third')
+  const acceptedDocs = selectors.getDocAcceptedList();
+  const rejectedDocs = selectors.getDocRejectedList();
+
+  return (
+    <View style={{flex: 1}}>
+      <HomeHeader />
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingLeft: 15,
+          paddingRight: 15,
+          marginTop: 20,
+        }}>
+        <TouchableOpacity
+          style={[
+            styles.buttonStyle,
+            {backgroundColor: selectedTab == 'first' ? '#148567' : 'white'},
+          ]}
+          onPress={() => {
+            setSelectedTab('first')
+          }}>
+          <Text
+            style={[
+              styles.button,
+              {color: selectedTab == 'first' ? 'white' : 'black'},
+            ]}>
+            Accepted
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.buttonStyle,
+            {
+              backgroundColor: selectedTab == 'second' ? '#148567' : 'white',
+              borderColor: selectedTab == 'second' ? '#148567' : '#148567',
+            },
+          ]}
+          onPress={() => {
+            setSelectedTab('second')
+          }}>
+          <Text
+            style={[
+              styles.button,
+              {color: selectedTab == 'second' ? 'white' : 'black'},
+            ]}>
+            Rejected
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.buttonStyle,
+            {
+              backgroundColor: selectedTab == 'third' ? '#148567' : 'white',
+              borderColor: selectedTab == 'third' ? '#148567' : '#148567',
+            },
+          ]}
+          onPress={() => {
+            setSelectedTab('third')
+          }}>
+          <Text
+            style={[
+              styles.button,
+              {color: selectedTab == 'third' ? 'white' : 'black'},
+            ]}>
+            Favourites
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingVertical: 20}}>
+        {selectedTab == 'first' ? (
+          <View>
+            {acceptedDocs && acceptedDocs.length ? (
+              acceptedDocs.map(item => {
+                return (
+                  <View
+                    key={item.id}
+                    style={{
+                      marginLeft: 10,
+                      marginRight: 10,
+                      marginTop: 5,
+                      borderRadius: 5,
+                      shadowColor: '#000',
+                      shadowOffset: {width: 0, height: 7},
+                      shadowOpacity: 0.25,
+                      shadowRadius: 3.84,
+                      elevation: 3,
+                    }}>
+                    <View>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          padding: 10,
+                          height: 70,
+                        }}>
+                        <View style={{marginRight: 10}}>
+                          <Image
+                            resizeMode="cover"
+                            source={require('../images/icons/Ame-Splash-Screen.jpg')}
+                            style={{
+                              borderRadius: 50,
+                              height: 50,
+                              width: 50,
+                            }}
+                          />
+                        </View>
+
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            flexGrow: 1,
+                          }}>
+                          <View>
+                            <Text style={{fontSize: 13}}>{` User ${
+                                item.phone
+                              } wants to access\n your document of ${
+                                item.doc_name
+                              }`}</Text>
+                          </View>
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              flexGrow: 1,
+                              justifyContent: 'flex-end'
+                            }}>
+                            <TouchableOpacity
+                              onPress={() => {
+                                dispatch(Actions.markFavouriteDocument(item.id))
+                              }}>
+                                <View style={{justifyContent: 'center', flexDirection: 'column', flexGrow: 1}}>
+                                  <Icon
+                                    size={25}
+                                    name="star"
+                                    color={item.star == 0 ? '#bebebe' : '#148567'}
+                                  />
+                                </View>
+                            </TouchableOpacity>
+
+                            <View>
+                              <Image
+                                source={require('../images/icons/accept-document.png')}
+                                style={{
+                                  height: 30,
+                                  width: 30,
+                                  marginLeft: 10,
+                                }}
+                              />
+                            </View>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })
+            ) : (
+              <View
+                style={{
+                  marginTop: 200,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Text style={{fontSize: 20, color: '#bebebe'}}>
+                  No Records
+                </Text>
+              </View>
+            )}
+          </View>
+        ) : 
+        selectedTab == 'second' ? (
+          <View>
+            {rejectedDocs && rejectedDocs.length ? (
+              rejectedDocs.map((item) => {
+                return (
+                  <View key={item.id}>
+                    <View
+                      style={{
+                        marginLeft: 10,
+                        marginRight: 10,
+                        marginTop: 5,
+                        borderRadius: 5,
+                        shadowColor: '#000',
+                        shadowOffset: {width: 0, height: 7},
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+                        elevation: 3,
+                      }}>
+                      <View>
+                        <View style={{flexDirection: 'row', padding: 10}}>
+                          <View style={{marginRight: 10}}>
+                            <Image
+                              resizeMode="cover"
+                              source={require('../images/icons/Ame-Splash-Screen.jpg')}
+                              style={{
+                                borderRadius: 50,
+                                height: 50,
+                                width: 50,
+                              }}
+                            />
+                          </View>
+
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              flex: 1,
+                              justifyContent: 'space-between',
+                            }}>
+                            <View>
+                            <Text style={{fontSize: 13}}>{` User ${
+                                item.phone
+                              } wants to\n access your document of ${
+                                item.doc_name
+                              }`}</Text>
+                            </View>
+                            <View>
+                              <Image
+                                source={require('../images/icons/delete-document.png')}
+                                style={{height: 30, width: 30}}
+                              />
+                            </View>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })
+            ) : (
+              <View
+                style={{
+                  marginTop: 200,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Text style={{fontSize: 20, color: '#bebebe'}}>
+                  No Records
+                </Text>
+              </View>
+            )}
+          </View>
+        ) : selectedTab == 'third' ? (
+          <View style={{}}>
+            <Favourite/>
+          </View>
+        ) : (
+          <View>
+            <Text>No Records</Text>
+          </View>
+        )}
+      </ScrollView>
+    </View>
+  );
+}
+
+
+
+const styles = StyleSheet.create({
+  button: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  buttonStyle: {
+    marginRight: 0,
+    backgroundColor: 'white',
+    height: 40,
+    width: 110,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    borderColor: '#148567',
+    borderWidth: 1.5,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 4,
+  },
+});

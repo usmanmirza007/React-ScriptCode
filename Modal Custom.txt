@@ -1,0 +1,6 @@
+   {searchFilter && 
+      <View style={{ position: 'absolute', zIndex: 10, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+     <View style={{backgroundColor:colors.off_white,flex:0.3}}></View>
+      </View>}
+
+onpress per state true ho ge then show ho ga default state false

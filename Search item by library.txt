@@ -1,0 +1,11 @@
+############## selector ##################
+
+export const getDocumentList = () => (
+  useSelector((state) => state.user.documents)
+);
+
+#################### search library #################
+import SearchInput, {createFilter} from 'react-native-search-filter';
+  const filteredDocs = selectors.getDocumentList().filter(
+    createFilter(KEYS_TO_FILTERS),
+  );

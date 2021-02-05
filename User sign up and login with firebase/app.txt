@@ -1,0 +1,408 @@
+import React, { useEffect } from "react";
+import { Text, Image, View, } from "react-native";
+// navigation
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import auth from '@react-native-firebase/auth';
+// Redux
+import { Provider } from 'react-redux';
+import { createStore, applyMiddleware, compose } from 'redux';
+// saga
+import createSagaMiddleware from 'redux-saga'
+import Reactotron from './ReactotronConfig';
+// import rootSaga from './src/redux/sagas';
+
+import { AuthContext } from "./src/screens/Context";
+import {
+  Search,
+  Details,
+  Search2,
+  Profile,
+  Splash,
+} from "./src/screens/Screens";
+import Welcome from "./src/screens/Welcome";
+import CreateAccount from "./src/screens/CreateAccount";
+
+import NewsPage from "./src/screens/NewsPage";
+import HomeScreen from "./src/screens/HomeScreen";
+import Trailors from "./src/screens/Trailors";
+
+import Verification from './src/screens/Verification'
+import MovieDetail from './src/screens/MovieDetail'
+import Film from './src/screens/Film'
+import NewsDetail from './src/screens/NewsDetail'
+import Directories from './src/screens/Directories'
+//import { Welcome } from "./src/components/Welcome";
+import SideMenu from './src/navigation/SideMenu'
+import Login from "./src/screens/Login";
+import Icons from './src/constants/images';
+
+var store;
+const sagaMonitor = Reactotron.createSagaMonitor()
+const sagaMiddleware = createSagaMiddleware({ sagaMonitor })
+
+const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+const Drawer = createDrawerNavigator();
+
+// Reactotron
+if (__DEV__) {
+  store = createStore(
+    compose(
+      applyMiddleware(sagaMiddleware),
+      Reactotron.createEnhancer(),
+    ),
+  );
+} else {
+  store = createStore(
+    compose(
+      applyMiddleware(sagaMiddleware)
+    ),
+  );
+}
+// saga run
+// sagaMiddleware.run(rootSaga);
+
+const AuthStack = () => (
+  <Stack.Navigator headerMode={'none'}>
+    <Stack.Screen
+      name="Welcome"
+      component={Welcome}
+      options={{ title: "Welcome" }}
+    />
+    <Stack.Screen
+      name="CreateAccount"
+      component={CreateAccount}
+      options={{ title: "Create Account" }}
+    />
+    <Stack.Screen
+      name="Login"
+      component={Login}
+    // options={{ title: "Sign In" }}
+    />
+    <Stack.Screen
+      name="Verification"
+      component={Verification}
+      options={{
+        animationEnabled: false
+      }}
+    />
+  </Stack.Navigator>
+);
+
+const HomeStack = () => (
+  <Stack.Navigator initialRouteName="HomeScreen" headerMode='none' >
+    <Stack.Screen
+      name="Details"
+      component={Details}
+      options={({ route }) => ({
+        title: route.params.name
+      })}
+    />
+    <Stack.Screen
+      name="MovieDetail"
+      component={MovieDetail}
+      options={{
+        animationEnabled: false
+      }}
+    />
+    <Stack.Screen
+      name="HomeScreen"
+      component={HomeScreen}
+      options={{
+        animationEnabled: false
+      }}
+    />
+    <Stack.Screen
+      name="NewsPage"
+      component={NewsPage}
+      options={{
+        animationEnabled: false
+      }}
+    />
+    <Stack.Screen
+      name="Trailors"
+      component={Trailors}
+      options={{
+        animationEnabled: false
+      }}
+    />
+    <Stack.Screen
+      name="NewsDetail"
+      component={NewsDetail}
+      options={{
+        animationEnabled: false
+      }}
+    />
+    <Stack.Screen
+      name="Film"
+      component={Film}
+      options={{
+        animationEnabled: false
+      }}
+    />
+    <Stack.Screen
+      name="Directories"
+      component={Directories}
+      options={{
+        animationEnabled: false
+      }}
+    />
+  </Stack.Navigator>
+);
+
+const SearchStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen name="Search" component={Search} />
+    <Stack.Screen name="Search2" component={Search2} />
+  </Stack.Navigator>
+);
+
+const ProfileStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen name="Profile" component={Profile} />
+  </Stack.Navigator>
+);
+
+const BottomNavigation = ({ navigation }) => {
+  return (
+    <Tab.Navigator
+      initialRouteName="Home"
+      tabBarOptions={{
+        style: {
+          borderTopWidth: 0,
+          borderTopColor: "transparent",
+        },
+        borderTopColor: "transparent",
+        inactiveTintColor: 'gray',
+        activeBackgroundColor: '#FF8400',
+        inactiveBackgroundColor: '#000'
+      }}
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused }) => {
+          var tintColor = { tintColor: focused ? '#fff' : 'gray' };
+          var border = { borderRadius: 200 };
+          var icon;
+
+          switch (route.name) {
+            case 'Home':
+              icon = Icons.home;
+              border = {};
+              break;
+            case 'Search':
+              icon = Icons.layer1;
+              border = {};
+              break;
+
+            case 'Movie':
+              icon = Icons.layer3;
+              border = {};
+              break;
+
+            case 'Player':
+              icon = Icons.layer2;
+              border = {};
+              break;
+
+            case 'Account':
+              icon = Icons.account;
+              border = {};
+
+              break;
+            default:
+              break;
+          }
+
+          return (
+            <View style={{ alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+              <Image
+                source={icon}
+                resizeMode="contain"
+                style={[
+                  tintColor,
+                  border,
+                  {
+                    marginTop: 0,
+                    height: 25,
+                    width: 25,
+                  },
+                ]}
+              />
+            </View>
+          );
+        },
+      })}>
+      <Tab.Screen
+        name="Home"
+        component={HomeStack}
+        options={{
+          tabBarLabel: () => null,
+        }}
+      />
+      <Tab.Screen
+        name="Search"
+        component={SearchStack}
+        options={{
+          tabBarLabel: () => null,
+        }}
+      />
+      <Tab.Screen
+        name="Movie"
+        component={SearchStack}
+        options={{
+          tabBarLabel: () => null,
+        }}
+      />
+      <Tab.Screen
+        name="Player"
+        component={SearchStack}
+        options={{
+          tabBarLabel: () => null,
+        }}
+      />
+      <Tab.Screen
+        name="Account"
+        component={SearchStack}
+        options={{
+          tabBarLabel: () => null,
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
+
+const DrawerNavigation = () => (
+  <Drawer.Navigator drawerPosition="right" initialRouteName="Home" drawerContent={props => <SideMenu {...props} />}>
+    <Drawer.Screen name="Home" component={BottomNavigation} />
+    <Drawer.Screen name="Profile" component={ProfileStack} />
+  </Drawer.Navigator>
+);
+
+const RootStack = ({ userToken }) => (
+  <Provider store={store}>
+  <Stack.Navigator headerMode="none">
+    {userToken ? (
+      <Stack.Screen
+        name="App"
+        component={DrawerNavigation}
+        options={{
+          animationEnabled: false
+        }}
+      />) : (
+        <Stack.Screen
+          name="Auth"
+          component={AuthStack}
+          options={{
+            animationEnabled: false
+          }}
+        />
+      )}
+  </Stack.Navigator>
+  </Provider>
+);
+
+export default () => {
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [userToken, setUserToken] = React.useState(null);
+  const [confirm, setConfirm] = React.useState(null);
+
+  const updateUserStatus = () => {
+    if (auth().currentUser && auth().currentUser.email && auth().currentUser.displayName) {
+      // console.log('id', auth().currentUser.uid);
+      setUserToken(true)
+    } else if (!auth().currentUser) {
+      setUserToken(false);
+    }
+  }
+
+  auth().onAuthStateChanged(() => {
+    updateUserStatus();
+  })
+
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(updateUserStatus);
+    return subscriber; // unsubscribe on unmount
+  }, []);
+
+  const authContext = React.useMemo(() => {
+    return {
+      sendOtp: async (phoneNumber, callback) => {
+        const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
+        setConfirm(confirmation);
+        callback();
+      },
+      confirmCode: async (code) => {
+        try {
+          await confirm.confirm(code);
+
+        } catch (error) {
+          console.log('Invalid code.', error.message);
+          throw new Error("Invalid code.")
+        }
+      },
+      loginWithEmailPassword: async (email, password) => {
+        try {
+          console.log(email);
+          
+          const confirmation = await auth().signInWithEmailAndPassword(email, password)
+          setConfirm(confirmation);
+        } catch (error) {
+          console.log(error);
+        } 
+        updateUserStatus();
+      },
+      setEmailPassword: async (email, password) => {
+        try {
+          // console.log('email', email, auth().currentUser);
+          await auth().currentUser.updateEmail(email);
+          await auth().currentUser.updatePassword(password);
+        } catch (error) {
+          throw error;
+        }
+        updateUserStatus();
+      },
+      setProfileInfo: async (fullName) => {
+        try {
+          await auth().currentUser.updateProfile({
+            displayName: fullName
+          });
+        } catch (error) {
+          throw error;
+        }
+        updateUserStatus();
+      },
+      signIn: () => {
+        setIsLoading(false);
+        setUserToken("asdf");
+      },
+      signUp: (email, pass) => {
+        setIsLoading(false);
+        setUserToken("asdf");
+      },
+      signOut: () => {
+        setIsLoading(false);
+        setUserToken(null);
+      }
+    };
+  }, [confirm]);
+
+  React.useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  }, []);
+
+  if (isLoading) {
+    return <Splash />;
+  }
+
+  return (
+    <AuthContext.Provider value={authContext}>
+      <NavigationContainer>
+        <RootStack userToken={userToken} />
+      </NavigationContainer>
+    </AuthContext.Provider>
+  );
+};

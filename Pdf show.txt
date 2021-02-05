@@ -1,0 +1,53 @@
+
+import React, { useEffect, useState } from 'react';
+import {
+  Image,
+  View,
+  Text,
+} from 'react-native';
+
+import { MultipleImageToPdf, ImageToPdf,} from '../constants/imageToPdf';
+import Pdf from 'react-native-pdf';
+
+const CropImageToPdf = ({ route }) => {
+
+  const [pdf, setPdf] = useState(null)
+  useEffect(() => {
+    async function fetchData() {
+      var pdfUri = await MultipleImageToPdf(route.params.allImageUri)
+      setPdf(pdfUri)
+    }
+    fetchData();
+  }, [])
+
+
+
+  return (
+    <View style={{ flex: 1, backgroundColor: 'black' }}>
+     <View style={{alignItems: 'center', justifyContent: 'center',height: 40,}}>
+     <Text style={{ color: 'white' }}>PDF Convert</Text>
+     </View>
+     {/* {pdf && <Image style={{
+          width: 500,
+          height: 300,
+          borderRadius: 10,
+        }}
+          source={{ uri: `${pdf[0]}` }} />} */}
+      {pdf && <Pdf
+        source={{uri: pdf}}
+        style={{
+          width: 400,
+          height: 400,
+          overflow: 'hidden',
+          flex: 1,
+        }}
+        onError={(error) => {
+          console.log('error', error);
+        }}
+      />}
+    </View>
+  );
+};
+
+
+export default CropImageToPdf;

@@ -1,0 +1,830 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  StatusBar,
+  TouchableOpacity,
+  ToastAndroid,
+  ImageBackground,
+  ScrollView,
+  TextInput
+} from 'react-native';
+
+import { getStatusBarHeight } from 'react-native-status-bar-height';
+
+import ImagePicker from 'react-native-image-picker';
+
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import { useDispatch } from 'react-redux';
+import moment from "moment";
+
+import * as selectors from '@redux/selectors';
+import * as Actions from '@redux/actions';
+
+import { useNavigation } from '@react-navigation/native';
+import { decode } from 'base64-arraybuffer';
+
+import images from '../constants/images';
+import colors from './../constants/colors';
+import Button from './../components/Button';
+import TimePicker from '../components/TimePicker';
+
+var S3 = require('aws-sdk/clients/s3');
+var fs = require('react-native-fs');
+
+var selectedTabButtonStyle = {
+  backgroundColor: '#2881E7',
+  color: 'white',
+  borderColor: '#2881E7'
+};
+
+var unSelectedTabStyle = {
+  backgroundColor: '#fff',
+  color: 'black',
+  borderColor: '#E7EAE9'
+};
+
+var dayStyle = {
+  padding: 15,
+  width: 'auto',
+  height: 34,
+  borderWidth: 1,
+  borderRadius: 7,
+  marginRight: 15,
+  justifyContent: 'center',
+  alignItems: 'center',
+}
+
+const user = auth().currentUser;
+
+const EditProfile = () => {
+  const navigation = useNavigation();
+  const dispatch = useDispatch();
+
+  const [loading, setLoading] = useState(false);
+
+  const [pickedCoverImage, setPickedCoverImage] = useState(null);
+  const [pickedProfileImage, setPickedProfileImage] = useState(null);
+
+
+  const [outletName, setOutletName] = useState('');
+  const [outletAddress, setOutletAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [contactRole, setContactRole] = useState('');
+  const [emailId, setEmailId] = useState('');
+  const [outletType, setoutletType] = useState('');
+  const [selectedDays, setSelectedDays] = useState([]);
+  const [date, setDate] = useState(new Date())
+  const [time, setTime] = useState(new Date())
+
+  const toggle = (dayNumber) => {
+    if (selectedDays.includes(dayNumber)) {
+      setSelectedDays(selectedDays.filter((value) => value != dayNumber));
+    } else {
+      setSelectedDays([...selectedDays, dayNumber]);
+    }
+  }
+
+
+  const restaurantInfo = selectors.restaurantInfo();
+
+  const chooseImage = async (setFileDetail) => {
+    let options = {
+      title: 'Upload Prescription',
+      takePhotoButtonTitle: 'Take a Photo',
+      chooseFromLibraryButtonTitle: 'Select From Gallery',
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
+    ImagePicker.showImagePicker(options, async (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+        alert(response.customButton);
+      } else {
+        const file = {
+          uri: response.uri,
+          name: response.fileName,
+          type: 'image/jpeg',
+        };
+        setFileDetail(file);
+      }
+    });
+  };
+
+  const uploadImageOnS3 = async (file) => {
+    const s3bucket = new S3({
+      accessKeyId: 'AKIA6CPT3OA66ZV4MX3M',
+      secretAccessKey: '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',
+      Bucket: 'profile-pictures-recipe-cup',
+      signatureVersion: 'v4',
+    });
+    let contentType = 'image/jpeg';
+    let contentDeposition = 'inline;filename="' + file.name + '"';
+    const base64 = await fs.readFile(file.uri, 'base64');
+    const arrayBuffer = decode(base64);
+    try {
+      const params = {
+        Bucket: 'profile-pictures-recipe-cup',
+        Key: file.name,
+        Body: arrayBuffer,
+        ContentDisposition: contentDeposition,
+        ContentType: contentType,
+      };
+
+      // await s3bucket.createBucket().promise();
+      ToastAndroid.show('Please wait while image is uploading', ToastAndroid.SHORT);
+      var data = await s3bucket.upload(params).promise();
+
+      return data.Location;
+
+    } catch (error) {
+      console.log('error in callback', error);
+    }
+  };
+
+  const updateProfile = async () => {
+    setLoading(true);
+
+    var updateData = {};
+    if (pickedCoverImage) {
+      updateData.coverImageUrl = await uploadImageOnS3(pickedCoverImage);
+    }
+    if (pickedProfileImage) {
+      updateData.imageUrl = await uploadImageOnS3(pickedProfileImage);
+      const update = {
+        photoURL: updateData.imageUrl,
+      };
+      try {
+        await user.updateProfile(update);
+      } catch {
+        console.log('Error');
+      }
+    }
+    if (outletName && outletName != restaurantInfo.outletName) {
+      updateData.outletName = outletName;
+    }
+    if (outletAddress && outletAddress != restaurantInfo.outletAddress) {
+      updateData.outletAddress = outletAddress;
+    }
+    if (city && city != restaurantInfo.city) {
+      updateData.city = city;
+    }
+    if (state && state != restaurantInfo.state) {
+      updateData.state = state;
+    }
+    if (contactName && contactName != restaurantInfo.contactName) {
+      updateData.contactName = contactName;
+    }
+    if (contactRole && contactRole != restaurantInfo.contactRole) {
+      updateData.contactRole = contactRole;
+    }
+    if (emailId && emailId != restaurantInfo.emailId) {
+      updateData.emailId = emailId;
+    }
+    if (selectedDays && selectedDays != restaurantInfo.selectedDays) {
+      updateData.selectedDays = selectedDays;
+    }
+    if (date && date != restaurantInfo.opening.from) {
+      updateData.opening.from = date;
+    }
+    if (time && time != restaurantInfo.opening.to) {
+      updateData.opening.to = time;
+    }
+
+    await firestore().collection('Restaurants').doc(auth().currentUser.uid).update(updateData);
+    dispatch(Actions.getRestaurantInfo())
+    navigation.navigate('BottomTabs');
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    setOutletName(restaurantInfo.outletName);
+    setOutletAddress(restaurantInfo.outletAddress);
+    setCity(restaurantInfo.city);
+    setContactName(restaurantInfo.contactName);
+    setContactRole(restaurantInfo.contactRole);
+    setEmailId(restaurantInfo.emailId);
+    setState(restaurantInfo.state);
+    setoutletType(restaurantInfo.outletType);
+    setSelectedDays(restaurantInfo.selectedDays?.length ? restaurantInfo.selectedDays : [])
+    var dateTimestamp = moment(restaurantInfo.opening.from, "h:mm:ss a")
+    setDate(dateTimestamp)
+    var dateTimestampTo = moment(restaurantInfo.opening.to, "h:mm:ss a")
+    setTime(dateTimestampTo)
+  }, [restaurantInfo]);
+
+  return (
+    <View style={styles.container}>
+      <ScrollView>
+        <StatusBar
+          translucent
+          barStyle="dark-content"
+          backgroundColor="transparent"
+        />
+        <View
+          style={{
+            marginTop:
+              StatusBar.currentHeight + getStatusBarHeight(true) + 25,
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginHorizontal: 25,
+          }}>
+          <TouchableOpacity onPress={() => { navigation.goBack() }}>
+            <Image
+              source={images.arrow}
+              resizeMode={'contain'}
+              style={{
+                width: 21,
+                height: 19,
+                tintColor: '#000',
+                alignSelf: 'center',
+              }}
+            />
+          </TouchableOpacity>
+
+          <View style={{ width: '100%' }}>
+            <Text
+              style={{
+                fontFamily: 'Montserrat-SemiBold',
+                fontSize: 20,
+                color: colors.light_black,
+                alignSelf: 'center',
+                marginLeft: -45,
+              }}>
+              Edit Profile
+              </Text>
+          </View>
+        </View>
+        <View
+          style={{
+            marginHorizontal: 25,
+            marginTop: 36,
+          }}>
+          <Text
+            style={{
+              fontFamily: 'Montserrat-Regular',
+              fontSize: 13,
+              color: colors.textInput,
+            }}>
+            Cover Picture
+            </Text>
+          <ImageBackground
+            source={pickedCoverImage ? { uri: pickedCoverImage.uri } : restaurantInfo?.coverImageUrl ? { uri: restaurantInfo?.coverImageUrl } : images.cover_image}
+            style={{
+              height: 210,
+              marginHorizontal: -25,
+              marginTop: 9,
+            }}>
+            <View style={{ alignItems: 'flex-end' }}>
+              <TouchableOpacity
+                onPress={() => chooseImage(setPickedCoverImage)}
+                style={{
+                  flexDirection: 'row',
+                  backgroundColor: colors.black,
+                  height: 35,
+                  width: 70,
+                  borderRadius: 10,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 25,
+                  marginTop: 150,
+                }}>
+                <Image
+                  style={{
+                    alignSelf: 'center',
+                    width: 17,
+                    height: 12,
+                    marginRight: 3,
+                    tintColor: colors.greyLight
+                  }}
+                  source={images.camera}
+                />
+                <Text
+                  style={{
+                    fontFamily: 'Montserrat-Medium',
+                    fontSize: 13,
+                    color: colors.white,
+                  }}>
+                  Edit
+                  </Text>
+              </TouchableOpacity>
+            </View>
+          </ImageBackground>
+
+          <Text
+            style={{
+              fontFamily: 'Montserrat-Regular',
+              fontSize: 12,
+              marginTop: 32,
+              color: colors.textInput,
+            }}>
+            Outlet Name
+            		</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <TextInput
+              style={{
+                fontSize: 17,
+                marginTop: 10,
+                fontFamily: 'Montserrat-Medium',
+                width: '90%',
+              }}
+              placeholder="Full Outlet Name"
+              placeholderTextColor={colors.textInput}
+              value={outletName}
+              onChangeText={(value) => {
+                setOutletName(value);
+              }}
+            />
+            {/* <TouchableOpacity
+							onPress={() => {
+								setOutletName('');
+							}}
+							style={{
+								backgroundColor: colors.black,
+								width: 21,
+								height: 21,
+								borderRadius: 21,
+								alignItems: 'center',
+								justifyContent: 'center',
+							}}>
+							<Image
+								source={images.cross}
+								resizeMode={'contain'}
+								style={{ width: 9, height: 9, tintColor: colors.white }}
+							/>
+						</TouchableOpacity> */}
+          </View>
+          <View
+            style={{
+              borderBottomWidth: 1,
+              borderBottomColor: colors.dark_white,
+              marginTop: 3
+            }} />
+          <Text
+            style={{
+              fontFamily: 'Montserrat-Regular',
+              fontSize: 12,
+              marginTop: 32,
+              color: colors.textInput,
+            }}>
+            Outlet Address
+            		</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <TextInput
+              style={{
+                fontSize: 17,
+                marginTop: 10,
+                fontFamily: 'Montserrat-Medium',
+                width: '90%',
+              }}
+              placeholder="Outlet Address"
+              placeholderTextColor={colors.textInput}
+              value={outletAddress}
+              onChangeText={(value) => {
+                setOutletAddress(value);
+              }}
+            />
+
+          </View>
+          <View
+            style={{
+              borderBottomWidth: 1,
+              borderBottomColor: colors.dark_white,
+              marginTop: 3
+            }} />
+          <Text
+            style={{
+              fontFamily: 'Montserrat-Regular',
+              fontSize: 12,
+              marginTop: 32,
+              color: colors.textInput,
+            }}>
+            City
+            		</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <TextInput
+              style={{
+                fontSize: 17,
+                marginTop: 10,
+                fontFamily: 'Montserrat-Medium',
+                width: '90%',
+              }}
+              placeholder="City"
+              placeholderTextColor={colors.textInput}
+              value={city}
+              onChangeText={(value) => {
+                setCity(value);
+              }}
+            />
+
+          </View>
+          <View
+            style={{
+              borderBottomWidth: 1,
+              borderBottomColor: colors.dark_white,
+              marginTop: 3
+            }} />
+          <Text
+            style={{
+              fontFamily: 'Montserrat-Regular',
+              fontSize: 12,
+              marginTop: 32,
+              color: colors.textInput,
+            }}>
+            State
+            		</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <TextInput
+              style={{
+                fontSize: 17,
+                marginTop: 10,
+                fontFamily: 'Montserrat-Medium',
+                width: '90%',
+              }}
+              placeholder="State"
+              placeholderTextColor={colors.textInput}
+              value={state}
+              onChangeText={(value) => {
+                setState(value);
+              }}
+            />
+
+          </View>
+          <View
+            style={{
+              borderBottomWidth: 1,
+              borderBottomColor: colors.dark_white,
+              marginTop: 3
+            }} />
+          <Text
+            style={{
+              fontFamily: 'Montserrat-Regular',
+              fontSize: 12,
+              marginTop: 32,
+              color: colors.textInput,
+            }}>
+            Contact Name
+            		</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <TextInput
+              style={{
+                fontSize: 17,
+                marginTop: 10,
+                fontFamily: 'Montserrat-Medium',
+                width: '90%',
+              }}
+              placeholder="Contact Name"
+              placeholderTextColor={colors.textInput}
+              value={contactName}
+              onChangeText={(value) => {
+                setContactName(value);
+              }}
+            />
+
+          </View>
+          <View
+            style={{
+              borderBottomWidth: 1,
+              borderBottomColor: colors.dark_white,
+              marginTop: 3
+            }} />
+          <Text
+            style={{
+              fontFamily: 'Montserrat-Regular',
+              fontSize: 12,
+              marginTop: 32,
+              color: colors.textInput,
+            }}>
+            Contact Person Role
+            		</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <TextInput
+              style={{
+                fontSize: 17,
+                marginTop: 10,
+                fontFamily: 'Montserrat-Medium',
+                width: '90%',
+              }}
+              placeholder="Contact Person Role"
+              placeholderTextColor={colors.textInput}
+              value={contactRole}
+              onChangeText={(value) => {
+                setContactRole(value);
+              }}
+            />
+
+          </View>
+          <View
+            style={{
+              borderBottomWidth: 1,
+              borderBottomColor: colors.dark_white,
+              marginTop: 3
+            }} />
+          <Text
+            style={{
+              fontFamily: 'Montserrat-Regular',
+              fontSize: 12,
+              marginTop: 32,
+              color: colors.textInput,
+            }}>
+            Email
+            		</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+            <TextInput
+              style={{
+                fontSize: 17,
+                marginTop: 10,
+                fontFamily: 'Montserrat-Medium',
+                width: '90%',
+
+
+
+              }}
+              placeholder="Email"
+              placeholderTextColor={colors.textInput}
+              value={emailId}
+              onChangeText={(value) => {
+                setEmailId(value);
+              }}
+            />
+
+          </View>
+
+          <View
+            style={{
+              borderBottomWidth: 1,
+              borderBottomColor: colors.dark_white,
+              marginTop: 3
+            }} />
+          <View
+            style={{
+              flexDirection: 'row',
+              marginTop: 35,
+            }}>
+            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => toggle(1)}
+                style={[
+                  selectedDays.includes(1) ? selectedTabButtonStyle : unSelectedTabStyle,
+                  {
+                    padding: 15,
+                    width: 'auto',
+                    height: 34,
+                    borderWidth: 1,
+                    borderRadius: 7,
+                    marginRight: 15,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  },
+                ]}>
+                <Text
+                  style={[
+                    selectedDays.includes(1) ? selectedTabButtonStyle : unSelectedTabStyle,
+                    {
+                      fontFamily: 'Montserrat-Regular',
+                      fontSize: 12,
+                    },
+                  ]}>
+                  Monday
+							</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => { toggle(2) }}
+                style={[
+                  selectedDays.includes(2) ? selectedTabButtonStyle : unSelectedTabStyle,
+                  dayStyle,
+                ]}>
+                <Text
+                  style={[
+                    selectedDays.includes(2) ? selectedTabButtonStyle : unSelectedTabStyle,
+                    { fontFamily: 'Montserrat-Regular', fontSize: 12 },
+                  ]}>
+                  Tuesday
+							</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => { toggle(3) }}
+                style={[
+                  selectedDays.includes(3) ? selectedTabButtonStyle : unSelectedTabStyle,
+                  dayStyle,
+                ]}>
+                <Text
+                  style={[
+                    selectedDays.includes(3) ? selectedTabButtonStyle : unSelectedTabStyle,
+                    { fontFamily: 'Montserrat-Regular', fontSize: 12 },
+                  ]}>
+                  Wednesday
+							</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => { toggle(4) }}
+                style={[
+                  selectedDays.includes(4) ? selectedTabButtonStyle : unSelectedTabStyle,
+                  dayStyle,
+                ]}>
+                <Text
+                  style={[
+                    selectedDays.includes(4) ? selectedTabButtonStyle : unSelectedTabStyle,
+                    { fontFamily: 'Montserrat-Regular', fontSize: 12 },
+                  ]}>
+                  Thursday
+							</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => { toggle(5) }}
+                style={[
+                  selectedDays.includes(5) ? selectedTabButtonStyle : unSelectedTabStyle,
+                  dayStyle,
+                ]}>
+                <Text
+                  style={[
+                    selectedDays.includes(5) ? selectedTabButtonStyle : unSelectedTabStyle,
+                    { fontFamily: 'Montserrat-Regular', fontSize: 12 },
+                  ]}>
+                  Friday
+							</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => toggle(6)}
+                style={[
+                  selectedDays.includes(6) ? selectedTabButtonStyle : unSelectedTabStyle,
+                  dayStyle,
+                ]}>
+                <Text
+                  style={[
+                    selectedDays.includes(6) ? selectedTabButtonStyle : unSelectedTabStyle,
+                    { fontFamily: 'Montserrat-Regular', fontSize: 12 },
+                  ]}>
+                  Saturday
+							</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => toggle(7)}
+                style={[
+                  selectedDays.includes(7) ? selectedTabButtonStyle : unSelectedTabStyle,
+                  dayStyle,
+                ]}>
+                <Text
+                  style={[
+                    selectedDays.includes(7) ? selectedTabButtonStyle : unSelectedTabStyle,
+                    { fontFamily: 'Montserrat-Regular', fontSize: 12 },
+                  ]}>
+                  Sunday
+							</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+          <View style={{ marginHorizontal: 0, marginTop: 15, flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View>
+              <Text
+                style={{
+                  fontFamily: 'Montserrat-Medium',
+                  fontSize: 13,
+                  color: colors.pizzaText,
+                }}>
+                From
+              </Text>
+              <TimePicker
+                updateTime={setDate}
+                editTime={date}
+              />
+            </View>
+            <View>
+
+              <Text
+                style={{
+                  fontFamily: 'Montserrat-Medium',
+                  fontSize: 13,
+                  color: colors.pizzaText,
+                }}>
+                To
+              </Text>
+              <TimePicker
+                updateTime={setTime}
+                editTime={time}
+              />
+            </View>
+          </View>
+          <Text
+            style={{
+              fontFamily: 'Montserrat-Regular',
+              fontSize: 13,
+              marginTop: 15,
+              color: colors.textInput,
+            }}>
+            Profile photo
+            		</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              marginTop: 15,
+              alignItems: 'center',
+            }}>
+            <Image
+              resizeMode={'cover'}
+              style={{
+                alignSelf: 'center',
+                width: 44,
+                height: 44,
+                marginRight: 19,
+                borderRadius: 30,
+              }}
+              source={pickedProfileImage ? { uri: pickedProfileImage.uri } : restaurantInfo?.imageUrl ? { uri: restaurantInfo?.imageUrl } : images.profile_silhouette}
+            />
+            <TouchableOpacity
+              style={{ flexDirection: 'row' }}
+              onPress={() => chooseImage(setPickedProfileImage)}>
+              <Image
+                resizeMode={'contain'}
+                style={{
+                  alignSelf: 'center',
+                  width: 17,
+                  height: 12,
+                  marginRight: 5,
+                  tintColor: colors.greyLight
+                }}
+                source={images.camera}
+              />
+              <Text style={{
+                fontFamily: 'Montserrat-Medium',
+                fontSize: 16,
+                color: colors.light_pink,
+              }}>Edit Photo</Text>
+            </TouchableOpacity>
+          </View>
+        
+          <View>
+            <Button
+              disabled={loading}
+              onClick={updateProfile}
+              style={{ marginTop: 33, marginBottom: 22, fontSize: 18 }}
+              text={loading ? 'UPLOADING...' : 'Save Change'}
+            />
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+});
+
+export default EditProfile;

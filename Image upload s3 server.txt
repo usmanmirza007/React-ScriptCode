@@ -1,0 +1,115 @@
+
+  const chooseImage = async (setFileDetail) => {
+    let options = {
+      title: 'Upload Prescription',
+      takePhotoButtonTitle: 'Take a Photo',
+      chooseFromLibraryButtonTitle: 'Select From Gallery',
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
+    ImagePicker.showImagePicker(options, async (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+        alert(response.customButton);
+      } else {
+        const file = {
+          uri: response.uri,
+          name: response.fileName,
+          type: 'image/jpeg',
+        };
+        setFileDetail(file);
+      }
+    });
+  };
+
+  const uploadImageOnS3 = async (file) => {
+    const s3bucket = new S3({
+      accessKeyId: 'AKIA6CPT3OA66ZV4MX3M',
+      secretAccessKey: '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',
+      Bucket: 'profile-pictures-recipe-cup',
+      signatureVersion: 'v4',
+    });
+    let contentType = 'image/jpeg';
+    let contentDeposition = 'inline;filename="' + file.name + '"';
+    const base64 = await fs.readFile(file.uri, 'base64');
+    const arrayBuffer = decode(base64);
+    try {
+      const params = {
+        Bucket: 'profile-pictures-recipe-cup',
+        Key: file.name,
+        Body: arrayBuffer,
+        ContentDisposition: contentDeposition,
+        ContentType: contentType,
+      };
+
+      // await s3bucket.createBucket().promise();
+      ToastAndroid.show('Please wait while image is uploading', ToastAndroid.SHORT);
+      var data = await s3bucket.upload(params).promise();
+
+      return data.Location;
+
+    } catch (error) {
+      console.log('error in callback', error);
+    }
+  };
+
+  const updateProfile = async () => {
+    setLoading(true);
+
+    var updateData = {};
+    if (pickedCoverImage) {
+      updateData.coverImageUrl = await uploadImageOnS3(pickedCoverImage);
+    }
+    if (pickedProfileImage) {
+      updateData.imageUrl = await uploadImageOnS3(pickedProfileImage);
+      const update = {
+        photoURL: updateData.imageUrl,
+      };
+      try {
+        await user.updateProfile(update);
+      } catch {
+        console.log('Error');
+      }
+    }
+    if (outletName && outletName != restaurantInfo.outletName) {
+      updateData.outletName = outletName;
+    }
+    if (outletAddress && outletAddress != restaurantInfo.outletAddress) {
+      updateData.outletAddress = outletAddress;
+    }
+    if (city && city != restaurantInfo.city) {
+      updateData.city = city;
+    }
+    if (state && state != restaurantInfo.state) {
+      updateData.state = state;
+    }
+    if (contactName && contactName != restaurantInfo.contactName) {
+      updateData.contactName = contactName;
+    }
+    if (contactRole && contactRole != restaurantInfo.contactRole) {
+      updateData.contactRole = contactRole;
+    }
+    if (emailId && emailId != restaurantInfo.emailId) {
+      updateData.emailId = emailId;
+    }
+    if (selectedDays && selectedDays != restaurantInfo.selectedDays) {
+      updateData.selectedDays = selectedDays;
+    }
+    if (date && date != restaurantInfo.opening.from) {
+      updateData.opening.from = date;
+    }
+    if (time && time != restaurantInfo.opening.to) {
+      updateData.opening.to = time;
+    }
+
+    await firestore().collection('Restaurants').doc(auth().currentUser.uid).update(updateData);
+    dispatch(Actions.getRestaurantInfo())
+    navigation.navigate('BottomTabs');
+    setLoading(false);
+  };

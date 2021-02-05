@@ -1,0 +1,27 @@
+ <View style={{ marginTop: 20 }}>
+          {data.map((item, index) => {
+             var itemStyle = {};
+             if (index == 0) {
+              viewStyle = { marginLeft: 25 };
+            } else if (index == data.length - 1) {
+               itemStyle = { marginBottom: 20 };
+             }
+            return (
+              <View key={index} style={itemStyle} >
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 25, marginHorizontal: 25, }}>
+                  <View style={{ alignItems: 'flex-start' }}>
+                    <Image
+                      style={{ width: 150, height: 150, borderRadius: 15 }}
+                      source={item.image}
+                    />
+                  </View>
+                  <View style={{ backgroundColor: colors.grey, borderTopRightRadius: 15, borderBottomRightRadius: 15, height: 120, flexGrow: 1 }}>
+                    <Text style={{ color: '#fff', fontSize: 10, width: 150, fontFamily: 'Montserrat-Bold', marginTop: 5, marginHorizontal: 5 }}>{item.text1}</Text>
+                    <Text style={{ color: '#fff', fontSize: 8, width: 150, fontFamily: 'Montserrat-Regular', marginTop: 5, marginHorizontal: 5 }}>{item.text2}</Text>
+                    <Text ellipsizeMode={'tail'} numberOfLines={2} style={{ fontSize: 8, color: '#fff', fontFamily: 'Montserrat-Regular', width: 150, marginHorizontal: 5 }}>{item.text3}</Text>
+                  </View>
+                </View>
+              </View>
+            )
+          })}
+        </View>

@@ -1,0 +1,126 @@
+import {
+  CLEAR_ERROR,
+  REQUEST_FAILED,
+  GET_USER,
+  GET_USER_SUCCESS,
+  GET_DOCUMENTS,
+  GET_DOCUMENTS_SUCCESS,
+  UPLOAD_CUSTOM_DOCUMENT,
+  UPLOAD_CUSTOM_DOCUMENT_SUCCESS,
+  RESCAN_DOCUMENT,
+  RESCAN_DOCUMENT_SUCCESS,
+  GET_DOCUMENTS_REQUESTS,
+  GET_DOCUMENTS_REQUESTS_SUCCESS,
+  DOC_LIST_FOR_VERIFICATION,
+  SET_MEETING,
+  ADD_NEW_DOCUMENT,
+  RESET_NEW_DOCUMENT
+} from './types';
+
+import {
+  HANDLE_UNAUTHORIZED
+} from './../onboarding/types.js'
+
+
+const INTIAL_STATE = {
+  loading: false,
+  user_id: null,
+  token: null,
+  step: 0,
+  error: null,
+  meetingId: null,
+
+  addNewDocument: [],
+  documents: [],
+  user_data: null,
+  docRequestList: [],
+  docAcceptedList: [],
+  docRejectedList: [],
+  docSignRequestList: [],
+  verificationList: [],
+};
+
+export default (state = INTIAL_STATE, action) => {
+
+  const { type, payload } = action;
+
+  switch (type) {
+
+    case CLEAR_ERROR:
+      return { ...state, error: null };
+
+    case GET_USER:
+      return { ...state, loading: true }
+    case GET_USER_SUCCESS:
+      return { ...state, loading: false, user_data: payload, step: payload.steps }
+
+    case UPLOAD_CUSTOM_DOCUMENT:
+      return { ...state, loading: true }
+    case UPLOAD_CUSTOM_DOCUMENT_SUCCESS:
+      return { ...state, loading: false }
+
+    case RESCAN_DOCUMENT:
+      return { ...state, loading: true }
+    case RESCAN_DOCUMENT_SUCCESS:
+      return { ...state, loading: false }
+
+    case GET_DOCUMENTS:
+      return { ...state, loading: true }
+    case GET_DOCUMENTS_SUCCESS:
+      console.log(payload);
+      var data = payload;
+      if (!Array.isArray(data)) {
+        data = [];
+      }
+      return { ...state, loading: false, documents: data }
+
+    case GET_DOCUMENTS_REQUESTS:
+      return { ...state, loading: true }
+    case GET_DOCUMENTS_REQUESTS_SUCCESS:
+################## set empty array #########################
+      var { requestList, acceptedList, rejectedList, signRequestList } = payload;
+      if (!Array.isArray(requestList)) {
+        requestList = [];
+      }
+      if (!Array.isArray(acceptedList)) {
+        acceptedList = [];
+      }
+      if (!Array.isArray(rejectedList)) {
+        rejectedList = [];
+      }
+      if (!Array.isArray(signRequestList)) {
+        signRequestList = [];
+      }
+      return { ...state, loading: false, docRequestList: requestList, docAcceptedList: acceptedList, docRejectedList: rejectedList, docSignRequestList: signRequestList }
+
+    case DOC_LIST_FOR_VERIFICATION:
+      return { ...state, verificationList: payload };
+
+    case SET_MEETING:
+      return { ...state, meetingId: payload };
+
+    case REQUEST_FAILED:
+      return { ...state, loading: false, error: payload };
+
+    case HANDLE_UNAUTHORIZED:
+      return INTIAL_STATE;
+
+####################### clone array ###################
+    case ADD_NEW_DOCUMENT:
+      const arr = state.addNewDocument.slice()
+      arr.push(payload)
+      return {
+        ...state,
+        addNewDocument: arr,
+      };
+
+    case RESET_NEW_DOCUMENT:
+      return {
+        ...state,
+        addNewDocument: [],
+      };
+
+    default:
+      return state;
+  }
+};

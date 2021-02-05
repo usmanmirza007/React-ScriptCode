@@ -1,0 +1,184 @@
+######################## component mapImageView and show large model ###################
+
+ <View style={{ flexDirection: 'row', marginHorizontal: 15 }}>
+              <View style={styles.centeredView}>
+                <Modal
+                  animationType="fade"
+                  transparent={true}
+                  visible={modalVisible}>
+                  <StatusBar backgroundColor='#148567' barStyle='light-content' />
+                  <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                      {/* <Pdf source={source} /> */}
+                      <ImageBackground
+                        resizeMode='contain'
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          justifyContent: 'flex-start',
+                          alignItems: 'flex-end'
+                        }}
+                        source={{uri : this.state.imageUri}}
+                      >
+                        <TouchableOpacity
+                          style={{ position: 'absolute', top: 20, right: 20 }}
+                          onPress={() => {
+                            this.setModalVisible(!modalVisible);
+                          }}>
+                          <Image
+                            source={require('../images/icons/cross.png')}
+                            style={{ height: 30, width: 45, tintColor: '#148567' }}
+                          />
+                        </TouchableOpacity>
+                      </ImageBackground>
+                    </View>
+                  </View>
+                </Modal>
+
+                {/* <TouchableOpacity
+                  onPress={() => {
+                    this.setModalVisible(true);
+                  }}
+                > */}
+                  <MapImageView
+                    style={{ marginTop: 10 }}
+                    imageData={this.props.addNewDocument}
+                    onPressItem={(imageUri) => this.setState({modalVisible: true, imageUri})}
+                     />
+
+                {/* </TouchableOpacity> */}
+              </View>
+
+############################# MapImageView code ##################################
+
+import React from 'react';
+import {View, TouchableOpacity, Dimensions, Text} from 'react-native';
+
+import ImageViewDesign from './ImageViewDesign';
+const windowWidth = Dimensions.get('window').width;
+import { useNavigation } from '@react-navigation/native';
+
+
+const AddNewPageView = ({style}) => {
+  var navigation = useNavigation();
+
+  return (
+  <TouchableOpacity
+    onPress={() => navigation.navigate('DocumentScan')}
+    style={{
+      width: (windowWidth - 15 * 3) / 2,
+      height: 300,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#148567',
+      borderRadius: 10,
+      ...style
+    }}>
+    <Text
+      style={{
+        color: 'white',
+        textAlign: 'center'
+      }}>
+      Add new image
+    </Text>
+  </TouchableOpacity>
+)}
+
+const MapImageView = ({ style, imageData, onPressItem = (imageUri) => null }) => {
+
+    var data = [];
+    for (let index = 0; index < imageData.length; index = index + 2) {
+      var itemStyle = {};
+      if(index >= 0){
+        itemStyle = {marginLeft: 15}
+      }
+      // if(index == imageData.length - 1){
+      //   itemStyle = {marginLeft: 15}
+      // }
+      
+      data.push(
+        <View
+          key={index}
+          style={[
+            style,
+            {
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              marginBottom: 10,
+              
+            },
+          ]}>
+          {imageData[index] && (
+            <ImageViewDesign
+              imageUri={imageData[index]}
+              onPress={onPressItem}
+            />
+          )}
+          
+          {imageData[index + 1] && (
+            <ImageViewDesign
+              imageUri={imageData[index + 1]}
+              style={itemStyle}
+              onPress={onPressItem}
+            />
+          )}   
+          {!imageData[index + 1] && (
+            <AddNewPageView style={itemStyle} />
+          )}   
+          
+                
+        </View>
+      );
+    }
+
+    if (imageData.length % 2 == 0) {
+      data.push(
+      <View style={{
+        alignSelf:  'flex-start',
+        // marginLeft: imageData.length % 2 == 0 ? 15 : 0,
+
+      }}>
+        <AddNewPageView/>
+      </View>);
+    }
+  
+    return (
+      <>
+        {data.map((itemPair) => {
+          return itemPair;
+        })}
+      </>
+    );
+  };
+
+  export default MapImageView
+
+############################### imageViewDesign code ############################
+import React from 'react';
+import { Text, View, Image, Dimensions } from 'react-native';
+import { TouchableOpacity, } from 'react-native-gesture-handler';
+
+const windowWidth = Dimensions.get('window').width;
+
+const ImageViewDesign = ({ style, imageUri, onPress = (imageUri) => null }) => {
+
+  return (
+      <TouchableOpacity
+        onPress={() => onPress(`data:image/png;base64,${imageUri}`)}
+        style={[style,{
+          borderWidth: 1,
+          borderColor: '#E7EAE9',
+          borderRadius: 8,
+        }]}>
+
+        <Image style={{
+          width: (windowWidth - 15 * 3) / 2,
+          height: 300,
+          borderRadius: 10,
+        }}
+          source={{ uri: `data:image/png;base64,${imageUri}` }} />
+      </TouchableOpacity>
+    
+  )
+};
+export default ImageViewDesign;

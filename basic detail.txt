@@ -1,0 +1,866 @@
+import React, { Component } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  StatusBar,
+  TextInput,
+  TouchableOpacity,
+  ToastAndroid,
+  Platform,
+  PermissionsAndroid,
+} from 'react-native';
+
+import moment from 'moment';
+
+import { ScrollView } from 'react-native-gesture-handler';
+import { getStatusBarHeight } from 'react-native-status-bar-height';
+import Geolocation from 'react-native-geolocation-service';
+import RNLocation from "react-native-location";
+import {
+  MenuProvider,
+  Menu,
+  MenuOption,
+  MenuTrigger,
+  MenuOptions,
+} from 'react-native-popup-menu';
+import ImagePicker from 'react-native-image-picker';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import { decode } from 'base64-arraybuffer';
+import { connect } from 'react-redux';
+
+import { setLogin } from '@redux/actions/signupActions';
+import images from './../constants/images';
+import colors from './../constants/colors';
+import Button from './../components/Button';
+import TimePicker from '../components/TimePicker';
+var S3 = require('aws-sdk/clients/s3');
+var fs = require('react-native-fs');
+
+const user = auth().currentUser;
+
+class BasicDetails extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      phoneNumber: '',
+      countryCode: 1,
+      outletName: '',
+      outletAddress: '',
+      city: '',
+      state: '',
+      contactName: '',
+      contactRole: '',
+      emailId: '',
+      coverImageUrl: null,
+      outletType: '',
+      restaurantImageUrl: null,
+      loading: false,
+      autoLocation: '',
+      error: null,
+      date: new Date(),
+      time: new Date(),
+      pinLocation: false
+    };
+    this.onPhoneChange = this.onPhoneChange.bind(this);
+    this.menu = React.createRef();
+  }
+  onPhoneChange(text) {
+    if (text.length == 4 && this.state.phoneNumber.length < 4) {
+      text = text + ' ';
+    } else if (text.length === 4 && this.state.phoneNumber.length > 4) {
+      text = text.slice(0, 3);
+    }
+    this.setState({ phoneNumber: text });
+  }
+
+  setDate = (date) => {
+    this.setState({
+      date: date
+    })
+  };
+
+  setTime = (time) => {
+    this.setState({
+      time: time
+    })
+  };
+  
+  validateEmail = () => {
+    const regEmail = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+    const emailCheck = regEmail.test(String(this.state.emailId).toLowerCase());
+
+    return emailCheck;
+  };
+  autoLocation = () => {
+    RNLocation.configure({
+      distanceFilter: 5.0
+    });
+
+    RNLocation.requestPermission({
+      ios: "whenInUse",
+      android: {
+        detail: "fine",
+        rationale: {
+          title: "Location permission",
+          message: "We use your location to demo the library",
+          buttonPositive: "OK",
+          buttonNegative: "Cancel"
+        }
+      }
+    }).then(granted => {
+      if (granted) {
+        this.setState({ pinLocation: true })
+        Geolocation.getCurrentPosition(
+          (position) => {
+            const region = (
+              // latitude: 
+              position.coords.latitude
+              // longitude: position.coords.longitude,
+              // latitudeDelta: 0.001,
+              // longitudeDelta: 0.001
+            );
+            this.setState({ outletAddress: region })
+            // setRegion(region);
+            // setLoading(false);
+            // setError(null)
+          },
+          (error) => {
+            console.log("Error", error);
+            // setLoading(false);
+            // setError(error.message)
+            this.setState({ error: error.message })
+
+          },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+          // console.log("Position", this.state.outletAddress)
+        );
+      }
+    });
+  };
+
+  chooseImage = async (setFileDetail) => {
+    let options = {
+      title: 'Upload Prescription',
+      takePhotoButtonTitle: 'Take a Photo',
+      chooseFromLibraryButtonTitle: 'Select From Gallery',
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
+    ImagePicker.showImagePicker(options, async (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+        alert(response.customButton);
+      } else {
+        const file = {
+          uri: response.uri,
+          name: response.fileName,
+          type: 'image/jpeg',
+        };
+        setFileDetail(file);
+      }
+    });
+  };
+
+  uploadImageOnS3 = async (file) => {
+    const s3bucket = new S3({
+      accessKeyId: 'AKIA6CPT3OA66ZV4MX3M',
+      secretAccessKey: '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',
+      Bucket: 'profile-pictures-recipe-cup',
+      signatureVersion: 'v4',
+    });
+    let contentType = 'image/jpeg';
+    let contentDeposition = 'inline;filename="' + file.name + '"';
+    const base64 = await fs.readFile(file.uri, 'base64');
+    const arrayBuffer = decode(base64);
+    try {
+      const params = {
+        Bucket: 'profile-pictures-recipe-cup',
+        Key: file.name,
+        Body: arrayBuffer,
+        ContentDisposition: contentDeposition,
+        ContentType: contentType,
+      };
+
+      // await s3bucket.createBucket().promise();
+      ToastAndroid.show(
+        'Please wait while image is uploading',
+        ToastAndroid.SHORT,
+      );
+      var data = await s3bucket.upload(params).promise();
+
+      return data.Location;
+    } catch (error) {
+      console.log('error in callback', error);
+    }
+  };
+
+  saveInformation = async () => {
+    const chooseDate = moment(this.state.date).format('h:mm:ss a')
+    const chooseTime = moment(this.state.time).format('h:mm:ss a')
+    const {
+      outletName,
+      outletAddress,
+      city,
+      state,
+      contactName,
+      contactRole,
+      emailId,
+      coverImageUrl,
+      restaurantImageUrl,
+      outletType,
+      // date,
+      // time
+    } = this.state;
+    if (
+      outletName &&
+      outletAddress &&
+      city &&
+      state &&
+      contactName &&
+      contactRole &&
+      emailId &&
+      coverImageUrl &&
+      restaurantImageUrl &&
+      outletType &&
+      chooseDate &&
+      chooseTime
+    ) {
+      if (!this.validateEmail()) {
+        ToastAndroid.show('wrong email input', ToastAndroid.SHORT);
+      } else {
+        try {
+          await auth().currentUser.updateProfile({ displayName: outletName });
+        } catch (err) {
+          console.log(err);
+          ToastAndroid.show(
+            'Something went wrong, please try again',
+            ToastAndroid.SHORT,
+          );
+          return;
+        }
+
+        if (auth().currentUser.displayName) {
+          this.setState({ loading: true });
+          var restaurantImage;
+          var coverImage;
+          if (this.state.coverImageUrl) {
+            coverImage = await this.uploadImageOnS3(this.state.coverImageUrl);
+          }
+          if (this.state.restaurantImageUrl) {
+            restaurantImage = await this.uploadImageOnS3(
+              this.state.restaurantImageUrl,
+            );
+            try {
+              await user.updateProfile({ photoURL: restaurantImage });
+            } catch {
+              console.log('Error');
+            }
+          }
+          await firestore()
+            .collection('Restaurants')
+            .doc(auth().currentUser.uid)
+            .set({
+              outletName: this.state.outletName,
+              outletAddress: this.state.outletAddress,
+              city: this.state.city,
+              state: this.state.state,
+              contactName: this.state.contactName,
+              contactRole: this.state.contactRole,
+              phone: this.state.phoneNumber,
+              emailId: this.state.emailId,
+              outletType: this.state.outletType,
+              coverImageUrl: coverImage,
+              imageUrl: restaurantImage,
+              // date: chooseDate,
+              // time: chooseTime,
+              opening: {
+                from: chooseDate,
+                to: chooseTime
+              }
+            });
+          this.props.setLogin(true);
+          // this.setState({loading: false});
+        }
+      }
+    } else {
+      ToastAndroid.show('Please fill all data first!', ToastAndroid.SHORT);
+    }
+  };
+  render() {
+    const { countryCode } = this.state;
+
+    var selectedFlag;
+    if (countryCode == 92) {
+      selectedFlag = images.pk_flag;
+    } else if (countryCode == 91) {
+      selectedFlag = images.in_flag;
+    } else {
+      selectedFlag = images.us_flag;
+    }
+
+    var numberMaxCount;
+    if (this.state.countryCode == 92) {
+      numberMaxCount = 11;
+    } else if (this.state.countryCode == 91) {
+      numberMaxCount = 10;
+    } else {
+      numberMaxCount = 11;
+    }
+    // console.log('date', this.state.date);
+    return (
+      <MenuProvider>
+        <View style={styles.container}>
+          <ScrollView>
+            <StatusBar
+              translucent
+              barStyle="dark-content"
+              backgroundColor="transparent"
+            />
+            <View
+              style={{
+                marginTop:
+                  StatusBar.currentHeight + getStatusBarHeight(true) + 25,
+                marginBottom: 30,
+                marginHorizontal: 25,
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+              <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
+                <Image
+                  resizeMode="contain"
+                  source={images.arrow}
+                  style={{
+                    width: 20,
+                    height: 20,
+                  }}
+                />
+              </TouchableOpacity>
+              <Text
+                style={{
+                  fontFamily: 'Montserrat-SemiBold',
+                  fontSize: 21,
+                  color: colors.lightBlack,
+                }}>
+                Let's get started
+              </Text>
+              <Text></Text>
+            </View>
+            <View
+              style={{
+                backgroundColor: '#F8F9F9',
+                opacity: 0.4,
+                height: 6,
+                borderWidth: 0.2,
+                borderColor: '#F8F9F9',
+                elevation: 8,
+                shadowColor: 'rgba(0, 0, 0, 0.1)',
+                shadowOpacity: 0.1,
+              }}
+            />
+            <View
+              style={{
+                marginHorizontal: 25,
+                marginTop: 15,
+              }}>
+              <Text
+                style={{
+                  fontFamily: 'Montserrat-Medium',
+                  fontSize: 15,
+                  color: colors.lightBlack,
+                }}>
+                Enter your basic details here:
+              </Text>
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  marginTop: 23,
+                  fontFamily: 'Montserrat-Regular',
+                }}
+                placeholder="Outlet name"
+                placeholderTextColor={colors.grey}
+                value={this.state.outletName}
+                onChangeText={(value) => {
+                  this.setState({ outletName: value });
+                }}
+              />
+              <View
+                style={{
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.line,
+                }}></View>
+              {this.pinLocation ?
+                <Text style={{
+                  fontSize: 17,
+                  marginVertical: 10,
+                  fontFamily: 'Montserrat-Medium',
+                  width: '90%',
+                }}>
+                  {this.state.outletAddress}
+                </Text>
+                :
+                <TextInput
+                  style={{
+                    fontSize: 16,
+                    marginTop: 23,
+                    fontFamily: 'Montserrat-Regular',
+                  }}
+                  placeholder="Outlet address"
+                  placeholderTextColor={colors.grey}
+                  value={this.state.outletAddress}
+                  onChangeText={(value) => {
+                    this.setState({ outletAddress: value });
+                  }}
+                />}
+              <TouchableOpacity onPress={() => this.autoLocation()}
+                style={{
+                  width: 'auto',
+                  height: 31,
+                  backgroundColor: colors.sky_blue,
+                  borderRadius: 5,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <Text
+                  style={{
+                    marginHorizontal: 5,
+                    fontSize: 13,
+                    color: colors.dark_pink,
+                    fontType: 'Montserrat-SemiBold'
+                  }}>
+                  Auto Location
+                    </Text>
+              </TouchableOpacity>
+              <View
+                style={{
+                  marginTop: 10,
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.line,
+                }}></View>
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  marginTop: 23,
+                  fontFamily: 'Montserrat-Regular',
+                }}
+                placeholder="City"
+                placeholderTextColor={colors.grey}
+                value={this.state.city}
+                onChangeText={(value) => {
+                  this.setState({ city: value });
+                }}
+              />
+              <View
+                style={{
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.line,
+                }}></View>
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  marginTop: 23,
+                  fontFamily: 'Montserrat-Regular',
+                }}
+                placeholder="State"
+                placeholderTextColor={colors.grey}
+                value={this.state.state}
+                onChangeText={(value) => {
+                  this.setState({ state: value });
+                }}
+              />
+              <View
+                style={{
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.line,
+                }}></View>
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  marginTop: 23,
+                  fontFamily: 'Montserrat-Regular',
+                }}
+                placeholder="Outlet Type e.g(Italian, ordinary, chinese)"
+                placeholderTextColor={colors.grey}
+                value={this.state.outletType}
+                onChangeText={(value) => {
+                  this.setState({ outletType: value });
+                }}
+              />
+              <View
+                style={{
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.line,
+                }}></View>
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  marginTop: 23,
+                  fontFamily: 'Montserrat-Regular',
+                }}
+                placeholder="Contact person's name"
+                placeholderTextColor={colors.grey}
+                value={this.state.contactName}
+                onChangeText={(value) => {
+                  this.setState({ contactName: value });
+                }}
+              />
+              <View
+                style={{
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.line,
+                }}></View>
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  marginTop: 23,
+                  fontFamily: 'Montserrat-Regular',
+                }}
+                placeholder="Contact person's role"
+                placeholderTextColor={colors.grey}
+                value={this.state.contactRole}
+                onChangeText={(value) => {
+                  this.setState({ contactRole: value });
+                }}
+              />
+
+              <View
+                style={{
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.line,
+                }}></View>
+              <View style={{ flex: 1, flexDirection: 'row' }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    marginRight: 17,
+                    marginTop: 30,
+                    width: 80,
+                    borderBottomColor: 'rgba(0, 0, 0, 0.12)',
+                    borderBottomWidth: 1,
+                    paddingBottom: 5,
+                  }}>
+                  <Menu
+                    ref={this.menu}
+                    onSelect={(value) => this.setState({ countryCode: value })}>
+                    <MenuTrigger />
+                    <MenuOptions
+                      customStyles={{
+                        optionsWrapper: {
+                          width: 'auto',
+                        },
+                        optionsContainer: {
+                          width: 'auto',
+                        },
+                      }}>
+                      <MenuOption value={1}>
+                        <View style={{ flexDirection: 'row' }}>
+                          <Image
+                            style={{
+                              flexDirection: 'column',
+                              alignSelf: 'center',
+                              width: 30,
+                              height: 20,
+                            }}
+                            source={images.us_flag}
+                          />
+                          <Text
+                            fontType={'medium'}
+                            style={{
+                              paddingVertical: 0,
+                              paddingLeft: 5,
+                              flexGrow: 1,
+                              flexDirection: 'column',
+                              alignSelf: 'center',
+                              fontFamily: 'Montserrat-Medium',
+                              fontSize: 17,
+                            }}>
+                            +1
+                          </Text>
+                        </View>
+                      </MenuOption>
+                      <MenuOption value={91}>
+                        <View style={{ flexDirection: 'row' }}>
+                          <Image
+                            style={{
+                              flexDirection: 'column',
+                              alignSelf: 'center',
+                              width: 30,
+                              height: 20,
+                            }}
+                            source={images.in_flag}
+                          />
+                          <Text
+                            fontType={'medium'}
+                            style={{
+                              paddingVertical: 0,
+                              paddingLeft: 5,
+                              flexGrow: 1,
+                              flexDirection: 'column',
+                              alignSelf: 'center',
+                              fontFamily: 'Montserrat-Medium',
+                              fontSize: 17,
+                            }}>
+                            +91
+                          </Text>
+                        </View>
+                      </MenuOption>
+                      <MenuOption value={92}>
+                        <View style={{ flexDirection: 'row' }}>
+                          <Image
+                            style={{
+                              flexDirection: 'column',
+                              alignSelf: 'center',
+                              width: 30,
+                              height: 20,
+                            }}
+                            source={images.pk_flag}
+                          />
+                          <Text
+                            fontType={'medium'}
+                            style={{
+                              paddingVertical: 0,
+                              paddingLeft: 5,
+                              flexGrow: 1,
+                              flexDirection: 'column',
+                              alignSelf: 'center',
+                              fontFamily: 'Montserrat-Medium',
+                              fontSize: 17,
+                            }}>
+                            +92
+                          </Text>
+                        </View>
+                      </MenuOption>
+                    </MenuOptions>
+                  </Menu>
+
+                  <TouchableOpacity
+                    style={{ flexDirection: 'row' }}
+                    onPress={() => this.menu.current.open()}>
+                    <Image
+                      style={{
+                        flexDirection: 'column',
+                        alignSelf: 'center',
+                        width: 30,
+                        height: 20,
+                      }}
+                      source={selectedFlag}
+                    />
+                    <Text
+                      fontType={'medium'}
+                      style={{
+                        paddingVertical: 0,
+                        paddingLeft: 5,
+                        flexGrow: 1,
+                        flexDirection: 'column',
+                        alignSelf: 'center',
+                        fontFamily: 'Montserrat-Medium',
+                        fontSize: 17,
+                      }}>
+                      +{this.state.countryCode}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    flexGrow: 1,
+                    marginTop: 30,
+                    borderBottomColor: 'rgba(0, 0, 0, 0.12)',
+                    borderBottomWidth: 1,
+                    paddingBottom: 5,
+                  }}>
+                  <TextInput
+                    placeholder="0123 456789"
+                    value={this.state.phoneNumber}
+                    onChangeText={this.onPhoneChange}
+                    style={{
+                      paddingVertical: 0,
+                      flexGrow: 1,
+                      flexDirection: 'column',
+                      alignSelf: 'center',
+                      fontFamily: 'Montserrat-Medium',
+                      fontSize: 17,
+                    }}
+                    maxLength={numberMaxCount}
+                    keyboardType={
+                      Platform.OS == 'android' ? 'numeric' : 'number-pad'
+                    }
+                  />
+                </View>
+              </View>
+
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  marginTop: 23,
+                  fontFamily: 'Montserrat-Regular',
+                }}
+                placeholder="john.doe@gmail.com"
+                placeholderTextColor={colors.grey}
+                value={this.state.emailId}
+                onChangeText={(value) => {
+                  this.setState({ emailId: value });
+                }}
+              />
+              <View
+                style={{
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.line,
+                }}
+              />
+              <Text
+                style={{
+                  fontFamily: 'Montserrat-Medium',
+                  fontSize: 15,
+                  marginTop: 10,
+                }}>
+                Cover Image
+              </Text>
+              <TouchableOpacity
+                style={{
+                  height: 110,
+                  width: 110,
+                  borderWidth: 1,
+                  borderColor: colors.line,
+                  borderRadius: 13,
+                  justifyContent: 'center',
+                  marginTop: 10,
+                }}
+                onPress={() => {
+                  this.chooseImage((coverImageUrl) =>
+                    this.setState({ coverImageUrl: coverImageUrl }),
+                  );
+                }}>
+                <Image
+                  style={{
+                    height: 110,
+                    width: 110,
+                    borderRadius: 13,
+                  }}
+                  source={
+                    this.state.coverImageUrl
+                      ? { uri: this.state.coverImageUrl.uri }
+                      : require('../assets/images/food.png')
+                  }
+                />
+              </TouchableOpacity>
+              <View
+                style={{
+                  marginTop: 20,
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.line,
+                }}></View>
+
+              <Text
+                style={{
+                  fontFamily: 'Montserrat-Medium',
+                  fontSize: 15,
+                  marginTop: 10,
+                }}>
+                Restaurant Image
+              </Text>
+
+              <TouchableOpacity
+                style={{
+                  height: 110,
+                  width: 110,
+                  borderWidth: 1,
+                  borderColor: colors.line,
+                  borderRadius: 13,
+                  justifyContent: 'center',
+                  marginTop: 10,
+                }}
+                onPress={() => {
+                  this.chooseImage((restaurantImageUrl) =>
+                    this.setState({ restaurantImageUrl: restaurantImageUrl }),
+                  );
+                }}>
+                <Image
+                  style={{
+                    height: 110,
+                    width: 110,
+                    borderRadius: 13,
+                  }}
+                  source={
+                    this.state.restaurantImageUrl
+                      ? { uri: this.state.restaurantImageUrl.uri }
+                      : require('../assets/images/food.png')
+                  }
+                />
+              </TouchableOpacity>
+              <View
+                style={{
+                  marginTop: 20,
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.line,
+                }}></View>
+              <View style={{ marginHorizontal: 0, marginTop: 15, flexDirection: 'row', justifyContent: 'space-between' }}>
+                <View>
+                  <Text
+                    style={{
+                      fontFamily: 'Montserrat-Medium',
+                      fontSize: 13,
+                      color: colors.pizzaText,
+                    }}>
+                    From
+                  </Text>
+                  <TimePicker
+                    updateTime={this.setDate}
+                    editTime={this.state.date}
+                  />
+                </View>
+                <View>
+
+                  <Text
+                    style={{
+                      fontFamily: 'Montserrat-Medium',
+                      fontSize: 13,
+                      color: colors.pizzaText,
+                    }}>
+                    To
+                  </Text>
+                  <TimePicker
+                    updateTime={this.setTime}
+                    editTime={this.state.time}
+                  />
+                </View>
+              </View>
+              <View>
+                <Button
+                  disabled={this.state.loading}
+                  onClick={() => {
+                    this.saveInformation();
+                  }}
+                  style={{ marginTop: 50, marginBottom: 30 }}
+                  text={this.state.loading ? 'UPLOADING...' : 'Continue'}
+                />
+              </View>
+            </View>
+          </ScrollView>
+        </View>
+      </MenuProvider>
+    );
+  }
+}
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+});
+
+const mapStateToProps = (state) => {
+  const { email, password } = state.signup;
+  return { email, password };
+};
+
+export default connect(mapStateToProps, { setLogin })(BasicDetails);

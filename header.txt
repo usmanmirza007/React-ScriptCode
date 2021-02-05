@@ -1,0 +1,33 @@
+<View
+        style={{
+          marginTop: StatusBar.currentHeight + getStatusBarHeight(true) + 25,
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginHorizontal: 25,
+        }}>
+        <TouchableOpacity>
+          <Image
+            source={images.arrow_backward}
+            resizeMode={'contain'}
+            style={{
+              width: 21,
+              height: 19,
+              tintColor: '#000',
+              alignSelf: 'center'
+            }}
+          />
+        </TouchableOpacity>
+        <View style={{ width: '100%' }}>
+          <Text
+            style={{
+              fontFamily: 'Montserrat-SemiBold',
+              fontSize: 20,
+              color: colors.lightBlack,
+              alignSelf: 'center',
+              marginLeft: -21,
+
+            }}>
+            Order Summary
+            </Text>
+        </View>
+      </View>

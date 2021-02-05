@@ -1,0 +1,950 @@
+
+export const allOrders = () =>
+  useSelector((state) => state.order.orders)
+  
+export const newOrders = () => {
+  return orders().filter((value) => {
+    return (
+      value.order_action == 'null' ||
+      value.order_action == null ||
+      value.order_action == ''
+    );
+  });
+};
+
+export const acceptedOrders = () =>(
+  allOrders().filter((value) => {
+    return (
+      value.order_action == 'accepted' 
+    )
+  }).sort((a, b) => b.order_place_time - a.order_place_time)
+)
+
+export const rejectedOrders = () =>
+  useSelector((state) => state.order.orders).filter((value) => {
+    return value.order_action == 'rejected';
+  });
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Image,
+  TouchableOpacity,
+  StatusBar,
+  ImageBackground,
+  ScrollView,
+  StyleSheet,
+} from 'react-native';
+
+import moment from 'moment';
+
+import * as selectors from './../redux/selectors';
+import {useNavigation} from '@react-navigation/native';
+
+// import {
+//   Collapse,
+//   CollapseHeader,
+//   CollapseBody,
+// } from 'accordion-collapse-react-native';
+
+// import Review from './../components/Review';
+import Text from './../components/Text';
+import images from './../constants/images';
+import colors from './../constants/colors';
+// import { navigationRef } from '../../RootNavigation';
+
+const Dashboard = () => {
+  // const [collapse, setCollapse] = useState(false);
+  // const [fullText, setFullText] = useState(false);
+  const [todayOrderTotal, setTodayOrderTotal] = useState();
+  const [weekOrderTotal, setWeekOrderTotal] = useState();
+  const [monthlyOrderTotal, setMonthlyOrderTotal] = useState();
+  const [newOrderTotal, setNewOrderTotal] = useState();
+  const [todayRejectedOrderTotal, setTodayRejectedOrderTotal] = useState();
+  const [weekRejectedOrderTotal, setWeekRejectedOrderTotal] = useState();
+  const [monthlyRejectedOrderTotal, setMonthlyRejectedOrderTotal] = useState();
+  const [todayOrderLength, setTodayOrderLength] = useState();
+  const [weekOrderLength, setWeekOrderLength] = useState();
+  const [monthOrderLength, setMonthOrderLength] = useState();
+  const [todayRejectedOrderLength, setTodayRejectedOrderLength] = useState();
+  const [weekRejectedOrderLength, setWeekRejectedOrderLength] = useState();
+  const [monthRejectedOrderLength, setMonthRejectedOrderLength] = useState();
+  
+  const navigation = useNavigation();
+
+  // const reviews = [
+  //   {
+  //     profile_pic: images.cover_image,
+  //     customer_name: 'Martha Lovadio',
+  //     location: 'Ramblewood St. , Grovetown',
+  //     review_points: 4.1,
+  //     review_time: 2,
+  //     description:
+  //     'Pizza Hut is the only trusted pizza outlet since the beginning  We always made our party orders from here Always will be first choice for pizza',
+  //   },
+  //   {
+  //     profile_pic: images.cover_image,
+  //     customer_name: 'Martha Lovadio',
+  //     location: 'Ramblewood St. , Grovetown',
+  //     review_points: 4.1,
+  //     review_time: 2,
+  //     description:
+  //     'Pizza Hut is the only trusted pizza outlet since the beginning  We always made our party orders from here Always will be first choice for pizza',
+  //   },
+  // ];
+
+  const restaurantInfo = selectors.restaurantInfo();
+  const acceptedOrders = selectors.acceptedOrders();
+  const rejectedOrders = selectors.rejectedOrders();
+  const newOrders = selectors.newOrders();
+  const allOrders = selectors.allOrders();
+  const month = new Date();
+  const currentMonth = moment(month).format('MMM');
+
+  var rejectedRate = 0;
+  var acceptRate = 0;
+  rejectedRate = (rejectedOrders.length / allOrders.length) * 100;
+  acceptRate = (acceptedOrders.length / allOrders.length) * 100;
+
+  useEffect(() => {
+    var acceptOrderData = JSON.parse(JSON.stringify(acceptedOrders))
+    var rejectedOrderData = JSON.parse(JSON.stringify(rejectedOrders))
+    var newOrderData = JSON.parse(JSON.stringify(newOrders))
+
+    const todayTimeStamp = new Date();
+    todayTimeStamp.setHours(0, 0, 0, 0);
+
+    var newOrderTotalPrice = 0;
+    var rejectedOrderTotalPrice = 0;
+    var acceptedOrderTotalPrice = 0;
+    
+    const curr = new Date();
+    const first = curr.getDate() - curr.getDay() + 1;
+    const firstday = new Date(curr.setDate(first));
+    firstday.setHours(0, 0, 0, 0);
+
+    const monthOrders = acceptOrderData.filter((value) => 
+      new Date(value.order_place_time).getMonth() == todayTimeStamp.getMonth()
+    )
+    acceptedOrderTotalPrice = monthOrders.reduce(function (accumulator, currentValue) {
+      return accumulator + currentValue.total_price
+    }, 0)
+    setMonthlyOrderTotal(acceptedOrderTotalPrice)
+    setMonthOrderLength(monthOrders.length)
+
+    acceptedOrderTotalPrice = 0;
+    const weekOrders = monthOrders.filter((value) => firstday < value.order_place_time
+    )
+    acceptedOrderTotalPrice = weekOrders.reduce(function (accumulator, currentValue) {
+      return accumulator + currentValue.total_price
+    }, 0)
+    setWeekOrderTotal(acceptedOrderTotalPrice)
+    setWeekOrderLength(weekOrders.length)
+
+    acceptedOrderTotalPrice = 0;
+    const todayOrders = monthOrders.filter((value) => todayTimeStamp < value.order_place_time
+    )
+    acceptedOrderTotalPrice = todayOrders.reduce(function (accumulator, currentValue) {
+      return accumulator + currentValue.total_price
+    }, 0)
+    setTodayOrderTotal(acceptedOrderTotalPrice)
+    setTodayOrderLength(todayOrders.length)
+
+    for(const newOrder of newOrderData) {
+      newOrderTotalPrice += newOrder.total_price;
+    }
+    setNewOrderTotal(newOrderTotalPrice);
+
+    
+    const monthRejectedOrders = rejectedOrderData.filter((value) => 
+      new Date(value.order_place_time).getMonth() == todayTimeStamp.getMonth()
+    )
+    rejectedOrderTotalPrice = monthRejectedOrders.reduce(function (accumulator, currentValue) {
+      return accumulator + currentValue.total_price
+    }, 0)
+    setMonthlyRejectedOrderTotal(rejectedOrderTotalPrice)
+    setMonthRejectedOrderLength(monthRejectedOrders.length)
+
+    rejectedOrderTotalPrice = 0;
+    const weekRejectedOrders = monthRejectedOrders.filter((value) => firstday < value.order_place_time
+    )
+    rejectedOrderTotalPrice = weekRejectedOrders.reduce(function (accumulator, currentValue) {
+      return accumulator + currentValue.total_price
+    }, 0)
+    setWeekRejectedOrderTotal(rejectedOrderTotalPrice)
+    setWeekRejectedOrderLength(weekRejectedOrders.length)  
+
+    rejectedOrderTotalPrice = 0;
+    const todayRejectedOrders = monthRejectedOrders.filter((value) => todayTimeStamp < value.order_place_time
+    )
+    rejectedOrderTotalPrice = todayRejectedOrders.reduce(function (accumulator, currentValue) {
+      return accumulator + currentValue.total_price
+    }, 0)
+    setTodayRejectedOrderTotal(rejectedOrderTotalPrice)
+    setTodayRejectedOrderLength(todayRejectedOrders.length)
+
+  }, [acceptedOrders, newOrders, rejectedOrders]);
+
+  return (
+    <View style={{backgroundColor: '#fff', flex: 1}}>
+      <StatusBar backgroundColor={'#fff'} barStyle="dark-content" translucent />
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          marginHorizontal: 25,
+          marginTop: StatusBar.currentHeight + 20,
+          alignItems: 'center',
+        }}>
+        <TouchableOpacity>
+          <Image style={{height: 11, width: 20}} source={images.menu_outline} />
+        </TouchableOpacity>
+        <Text
+          fontType="semiBold"
+          style={{
+            fontSize: 20,
+          }}>
+          Business
+        </Text>
+
+        <TouchableOpacity>
+          <ImageBackground
+            resizeMode="contain"
+            style={{height: 25, width: 20}}
+            source={images.notification}>
+            <View
+              style={{
+                left: 7,
+                bottom: 11,
+                backgroundColor: colors.sky_blue,
+                width: 24,
+                height: 24,
+                borderRadius: 40,
+                alignSelf: 'flex-end',
+                position: 'absolute',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                borderColor: colors.white,
+                borderWidth: 2,
+              }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  textAlign: 'center',
+                  color: colors.white,
+                }}>
+                2
+              </Text>
+            </View>
+          </ImageBackground>
+        </TouchableOpacity>
+      </View>
+      <ScrollView>
+        <View style={{marginHorizontal: 25, marginVertical: 25}}>
+          <View
+            style={{
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+              }}>
+              <Text
+                fontType="semiBold"
+                style={{
+                  fontSize: 24,
+                  color: colors.lightBlack,
+                }}>
+                {restaurantInfo.outletName}
+              </Text>
+            </View>
+            <Text
+              fontType="normal"
+              style={{
+                fontSize: 14,
+                color: colors.grey,
+              }}>
+              {restaurantInfo.outletAddress}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.separator} />
+
+        <View
+          style={{
+            flexDirection: 'row',
+            marginHorizontal: 25,
+            justifyContent: 'space-between',
+          }}>
+          <Text fontType={'bold'} style={{fontSize: 18}}>
+            Delivered Orders
+          </Text>
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate('CompletedOrders');
+            }}
+            style={{flexDirection: 'row', alignItems: 'center'}}>
+            <Text fontType={'medium'} style={{fontSize: 12, color: '#2881E7'}}>
+              See more
+            </Text>
+            <Image
+              source={images.caret_forward}
+              style={{width: 5, height: 7, marginHorizontal: 3, marginTop: 2}}
+            />
+          </TouchableOpacity>
+        </View>
+        <View
+          style={{
+            backgroundColor: '#12A2AB',
+            height: 222,
+            marginHorizontal: 25,
+            borderRadius: 8,
+            marginTop: 23,
+          }}>
+          <View style={{marginHorizontal: 18, marginVertical: 16}}>
+            <Text style={{fontSize: 14, color: colors.white}}>Today</Text>
+            <Text
+              fontType={'semiBold'}
+              style={{fontSize: 24, color: colors.white, marginTop: 4}}>
+              ${parseFloat(todayOrderTotal).toFixed(2)}
+            </Text>
+            <Text
+              fontType={'normal'}
+              style={{fontSize: 15, color: colors.white, marginTop: 4}}>
+              {todayOrderLength} orders
+            </Text>
+          </View>
+          <View
+            style={{
+              borderBottomWidth: 1,
+              borderBottomColor: '#23B0BA',
+            }}
+          />
+          <View style={{flexDirection: 'row'}}>
+            <View style={{marginHorizontal: 18, marginVertical: 16}}>
+              <Text style={{fontSize: 12, color: colors.white}}>
+                This week: 20-27 {currentMonth}
+              </Text>
+              <Text
+                fontType={'semiBold'}
+                style={{fontSize: 24, color: colors.white, marginTop: 4}}>
+                ${parseFloat(weekOrderTotal).toFixed(2)}
+              </Text>
+              <Text
+                fontType={'normal'}
+                style={{fontSize: 15, color: colors.white, marginTop: 4}}>
+                {weekOrderLength} orders
+              </Text>
+            </View>
+            <View
+              style={{
+                marginLeft: 10,
+                borderRightWidth: 1,
+                borderRightColor: '#23B0BA',
+              }}
+            />
+            <View style={{marginHorizontal: 18, marginVertical: 16}}>
+              <Text style={{fontSize: 12, color: colors.white}}>
+                This month: 01-31 {currentMonth}
+              </Text>
+              <Text
+                fontType={'semiBold'}
+                style={{fontSize: 24, color: colors.white, marginTop: 4}}>
+                ${parseFloat(monthlyOrderTotal).toFixed(2)}
+              </Text>
+              <Text
+                fontType={'normal'}
+                style={{fontSize: 15, color: colors.white, marginTop: 4}}>
+                {monthOrderLength} orders
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            height: 'auto',
+            marginHorizontal: 25,
+            borderRadius: 8,
+            backgroundColor: '#3951B1',
+            marginHorizontal: 25,
+            marginTop: 40,
+            flexGrow: 1,
+            flex: 1,
+            flexWrap: 'nowrap',
+          }}>
+          <View
+            style={{
+              flexDirection: 'column',
+              flexWrap: 'wrap',
+              flex: 1,
+              marginRight: 5,
+              marginVertical: 10,
+              marginLeft: 11,
+            }}>
+            <View style={{flexDirection: 'row'}}>
+              <Text
+                fontType={'semiBold'}
+                numberOfLines={2}
+                style={{fontSize: 14, textAlign: 'left', color: colors.white}}>
+                Get more orders from RecipeCup
+              </Text>
+            </View>
+            <View style={{flexDirection: 'row'}}>
+              <Text
+                fontType={'normal'}
+                style={{fontSize: 12, width: 'auto', color: '#A5B5F8'}}>
+                items with food images lead to more orders compared to items
+                without them
+              </Text>
+            </View>
+          </View>
+
+          <View style={{justifyContent: 'flex-end', flexDirection: 'row'}}>
+            <View style={{flexDirection: 'row'}}>
+              <View
+                style={{
+                  width: 62,
+                  height: 58,
+                  backgroundColor: '#546FD9',
+                  borderRadius: 7,
+                  marginRight: 11,
+                  justifyContent: 'center',
+                  alignSelf: 'center',
+                  alignItems: 'center',
+                }}>
+                <Image
+                  source={images.camera_plus}
+                  style={{width: 10, height: 10}}
+                />
+                <Text
+                  fontType={'medium'}
+                  style={{
+                    fontSize: 12,
+                    color: colors.white,
+                    marginTop: 4,
+                    textAlign: 'center',
+                  }}>
+                  Add Photos
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View
+          style={[
+            {
+              marginVertical: 25,
+              ...styles.separator,
+            },
+          ]}
+        />
+        <View style={{flexDirection: 'row', marginHorizontal: 25}}>
+          <Text
+            fontType={'medium'}
+            style={{
+              fontSize: 12,
+              color: '#91939B',
+              marginTop: 4,
+              textAlign: 'center',
+            }}>
+            NEW YORK | ID25839
+          </Text>
+          {/* <View
+            style={{
+              borderRightWidth: 1,
+              height:10,
+              borderRightColor: '#91939B',
+            }}
+          />
+          <Text
+            fontType={'medium'}
+            style={{
+              fontSize: 12,
+              color: '#91939B',
+              marginTop: 4,
+              textAlign: 'center',
+            }}>
+            ID25896
+          </Text> */}
+        </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            marginHorizontal: 25,
+            marginTop: 13,
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+          <Text
+            fontType={'semiBold'}
+            style={{
+              fontSize: 18,
+              color: colors.black,
+              marginTop: 4,
+              width: 200,
+            }}>
+            Opposite to westside New york Central
+          </Text>
+          <View
+            style={{
+              width: 55,
+              height: 26,
+              backgroundColor: '#2881E7',
+              borderRadius: 4,
+              justifyContent: 'center',
+            }}>
+            <View
+              style={{
+                justifyContent: 'center',
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+              <Image
+                source={images.star}
+                style={{
+                  width: 9,
+                  height: 9,
+                }}
+              />
+              <Text
+                fontType={'medium'}
+                style={{
+                  fontSize: 12,
+                  color: colors.white,
+                  marginHorizontal: 5,
+                }}>
+                4.24
+              </Text>
+            </View>
+          </View>
+        </View>
+        {/* <View style={{flexDirection:'row'}}>
+          <Image source={images.gold} style={{width}} />
+        </View> */}
+        <View
+          style={[
+            {
+              marginVertical: 25,
+              ...styles.separator,
+            },
+          ]}
+        />
+
+        <View
+          style={{
+            flexDirection: 'row',
+            marginHorizontal: 25,
+            justifyContent: 'space-between',
+          }}>
+          <Text fontType={'bold'} style={{fontSize: 18}}>
+            Rejected Orders
+          </Text>
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <Text fontType={'medium'} style={{fontSize: 12, color: '#2881E7'}}>
+              See more
+            </Text>
+            <Image
+              source={images.caret_forward}
+              style={{width: 5, height: 7, marginHorizontal: 3, marginTop: 2}}
+            />
+          </View>
+        </View>
+        <Text fontType={'normal'} style={{fontSize: 13, marginHorizontal: 25}}>
+          Lost sales from orders rejected
+        </Text>
+        <View
+          style={{
+            borderWidth: 1,
+            borderColor: '#E8E8E8',
+            height: 222,
+            marginHorizontal: 25,
+            borderRadius: 8,
+            marginVertical: 25,
+          }}>
+          <View style={{marginHorizontal: 18, marginVertical: 16}}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+              <Text style={{fontSize: 14, color: '#757885'}}>Today</Text>
+              <View
+                style={{
+                  width: 58,
+                  height: 26,
+                  backgroundColor: '#707BBC',
+                  borderRadius: 4,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Text
+                  fontType={'medium'}
+                  style={{fontSize: 12, color: colors.white}}>
+                  BY YOU
+                </Text>
+              </View>
+            </View>
+            <Text
+              fontType={'semiBold'}
+              style={{fontSize: 24, color: colors.black, marginTop: 4}}>
+              ${parseFloat(todayRejectedOrderTotal).toFixed(2)}
+            </Text>
+            <Text
+              fontType={'normal'}
+              style={{fontSize: 15, color: colors.black, marginTop: 4}}>
+              {todayRejectedOrderLength} orders
+            </Text>
+          </View>
+          <View
+            style={{
+              borderBottomWidth: 1,
+              borderBottomColor: colors.line,
+            }}
+          />
+          <View style={{flexDirection: 'row'}}>
+            <View style={{marginHorizontal: 18, marginVertical: 16}}>
+              <Text style={{fontSize: 12, color: '#757885'}}>
+                This week: 20-27 {currentMonth}
+              </Text>
+              <Text 
+                ellipsizeMode="tail" 
+                numberOfLines={1} 
+                fontType={'semiBold'}
+                style={{fontSize: 24, color: colors.black, marginTop: 4}}>
+                ${parseFloat(weekRejectedOrderTotal).toFixed(2)}
+              </Text>
+              <Text
+                fontType={'normal'}
+                style={{fontSize: 15, color: colors.black, marginTop: 4}}>
+                {weekRejectedOrderLength} orders
+              </Text>
+            </View>
+            <View
+              style={{
+                marginLeft: 10,
+                borderRightWidth: 1,
+                height: 101,
+                borderRightColor: colors.line,
+              }}
+            />
+            <View style={{marginHorizontal: 18, marginVertical: 16}}>
+              <Text style={{fontSize: 12, color: '#757885'}}>
+                This month: 01-31 {currentMonth}
+              </Text>
+              <Text
+                fontType={'semiBold'}
+                style={{fontSize: 24, color: colors.black, marginTop: 4}}>
+                ${parseFloat(monthlyRejectedOrderTotal).toFixed(2)}
+              </Text>
+              <Text
+                fontType={'normal'}
+                style={{fontSize: 15, color: colors.black, marginTop: 4}}>
+                {monthRejectedOrderLength} orders
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* <View style={styles.separator} />
+        <View
+          style={{
+            flexDirection: 'row',
+            marginHorizontal: 25,
+            justifyContent: 'space-between',
+            marginBottom: 35,
+          }}>
+          <Text fontType={'bold'} style={{fontSize: 18}}>
+            Delivered Orders
+          </Text>
+          <TouchableOpacity
+            style={{flexDirection: 'row', alignItems: 'center'}}>
+            <Text fontType={'medium'} style={{fontSize: 12, color: '#2881E7'}}>
+              See more
+            </Text>
+            <Image
+              source={images.carrot_forward}
+              style={{
+                width: 5,
+                height: 7,
+                marginHorizontal: 3,
+                marginTop: 2,
+                tintColor: '#2881E7',
+              }}
+            />
+          </TouchableOpacity>
+        </View>
+        {reviews.map((reviewItems, index) => {
+          var subString = reviewItems.description;
+          var newSubString = subString.substring(0, 80);
+          return (
+            <View key={index} style={{marginHorizontal: 25}}>
+              <View
+                style={{
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                }}>
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <View>
+                    <Image
+                      style={{
+                        height: 48,
+                        width: 48,
+                        alignSelf: 'center',
+                        borderRadius: 30,
+                      }}
+                      source={reviewItems.profile_pic}
+                    />
+                  </View>
+                  <View style={{marginLeft: 14}}>
+                    <Text
+                      fontType="semiBold"
+                      style={{
+                        fontSize: 16,
+                      }}>
+                      {reviewItems.customer_name}
+                    </Text>
+                    <Text
+                      fontType="normal"
+                      style={{
+                        fontSize: 12,
+                        color: colors.grey,
+                      }}>
+                      {reviewItems.location}
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    marginTop: 10,
+                    alignItems: 'center',
+                  }}>
+                  <Review editable={true} value={5} />
+                  <Text fontType="normal" style={styles.reviewText}>
+                    {reviewItems.review_points}
+                  </Text>
+                  <Text
+                    fontType="normal"
+                    style={{
+                      fontSize: 9,
+                      marginLeft: 8,
+                      color: colors.grey,
+                    }}>
+                    {reviewItems.review_time} days ago
+                  </Text>
+                </View>
+              </View>
+
+              {!fullText ? (
+                <TouchableOpacity onPress={() => setFullText(true)}>
+                  <Text
+                    fontType="normal"
+                    style={{
+                      fontSize: 12,
+                      marginTop: 20,
+                      color: colors.grey,
+                    }}>
+                    {reviewItems.description}
+                    <Text
+                      fontType="medium"
+                      style={{
+                        fontSize: 12,
+                        color: colors.light_pink,
+                      }}>
+                      {' '}
+                      close
+                    </Text>
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity onPress={() => setFullText(false)}>
+                  <Text
+                    fontType="normal"
+                    style={{
+                      fontSize: 12,
+                      marginTop: 20,
+                      color: colors.grey,
+                    }}>
+                    {newSubString}...
+                    <Text
+                      fontType="medium"
+                      style={{
+                        fontSize: 12,
+                        color: colors.light_pink,
+                      }}>
+                      read more
+                    </Text>
+                  </Text>
+                </TouchableOpacity>
+              )}
+              <Image
+                resizeMode="cover"
+                style={{
+                  width: 'auto',
+                  height: 200,
+                  borderRadius: 8,
+                  marginTop: 15,
+                  marginBottom: 25,
+                }}
+                source={reviewItems.profile_pic}
+              />
+              <View style={styles.separator} />
+            </View>
+          );
+        })} */}
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: 20,
+            marginHorizontal: 25,
+          }}>
+          <View
+            style={{flexDirection: 'column', justifyContent: 'space-between'}}>
+            <Text
+              fontType="semiBold"
+              style={{
+                color: colors.lightBlack,
+                fontSize: 24,
+              }}>
+              {!acceptRate ? '0' : acceptRate.toFixed(2)}%
+            </Text>
+            <Text
+              fontType="normal"
+              style={{
+                color: colors.lightBlack,
+                fontSize: 13,
+              }}>
+              accept rate
+            </Text>
+          </View>
+          <View
+            style={{flexDirection: 'column', justifyContent: 'space-between'}}>
+            <Text
+              fontType="semiBold"
+              style={{
+                color: colors.lightBlack,
+                fontSize: 24,
+              }}>
+              0.14%
+            </Text>
+            <Text
+              fontType="normal"
+              style={{
+                color: colors.lightBlack,
+                fontSize: 13,
+              }}>
+              edit rate
+            </Text>
+          </View>
+          <View
+            style={{flexDirection: 'column', justifyContent: 'space-between'}}>
+            <Text
+              fontType="semiBold"
+              style={{
+                color: colors.lightBlack,
+                fontSize: 24,
+                alignSelf: 'center',
+              }}>
+              {!rejectedRate ? '0' : rejectedRate.toFixed(2)}%
+            </Text>
+            <Text
+              fontType="normal"
+              style={{
+                color: colors.lightBlack,
+                fontSize: 13,
+              }}>
+              cancel rate
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+      {newOrders.length >= 1 && (
+        <View
+          style={{
+            height: 70,
+            backgroundColor: '#20A253',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+          }}>
+          <View
+            style={{
+              flexDirection: 'column',
+              marginHorizontal: 25,
+              marginTop: 15,
+            }}>
+            <Text
+              fontType="semiBold"
+              style={{
+                fontSize: 18,
+                color: '#fff',
+              }}>
+              {newOrders.length} New Orders
+            </Text>
+            <Text
+              fontType="semiBold"
+              style={{
+                color: '#fff',
+                fontSize: 13,
+              }}>
+              Total Payment: ${newOrderTotal}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('AcceptingOrders')}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginRight: 25,
+            }}>
+            <Text
+              fontType="medium"
+              style={{
+                color: '#fff',
+                fontSize: 12,
+              }}>
+              View
+            </Text>
+            <Image
+              style={{width: 5, height: 5, marginLeft: 5}}
+              source={images.carrot_forward}
+            />
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+  {
+  }
+};
+
+export default Dashboard;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+
+  separator: {
+    backgroundColor: colors.border,
+    height: 8,
+    marginHorizontal: -25,
+    marginBottom: 25,
+  },
+  reviewText: {
+    fontSize: 12,
+    marginLeft: 8,
+    color: colors.lightBlack,
+  },
+});
+//

@@ -1,0 +1,16 @@
+export const getSubCategory = (subCategoryId, vegOnlyFilter) => {
+  const resp = useSelector((state) => state.home.subCategories?.[subCategoryId])
+  const currentDay = new Date().getDay();
+  
+  
+  if (!(resp && resp.length)) return [];
+
+  const filteredCats = resp.filter((item) => {
+    if (vegOnlyFilter && !Boolean(item.vegeterian)) {
+      return false;
+    }
+    return (item.daysAvailable?.includes(currentDay) || item.availablity)
+  })
+
+  return filteredCats ? filteredCats : [];
+}

@@ -1,0 +1,58 @@
+import { Value } from 'react-native-reanimated';
+import {useSelector} from 'react-redux';
+
+export const orders = () =>
+  useSelector((state) => state.order.orders).filter((value) => {
+    return value.order_action != 'rejected' && !value.completed_at;
+  }).sort((a, b) => b.order_place_time - a.order_place_time);
+
+export const allOrders = () =>
+  useSelector((state) => state.order.orders)
+  
+export const newOrders = () => {
+  return orders().filter((value) => {
+    return (
+      value.order_action == 'null' ||
+      value.order_action == null ||
+      value.order_action == ''
+    );
+  });
+};
+
+export const acceptedOrders = () =>(
+  allOrders().filter((value) => {
+    return (
+      value.order_action == 'accepted' 
+    )
+  }).sort((a, b) => b.order_place_time - a.order_place_time)
+)
+
+export const preparedOrders = () =>(
+  allOrders().filter((value) => {
+    return (
+      value.order_action == 'accepted' && !value.prepared_at
+    )
+  }).sort((a, b) => b.order_place_time - a.order_place_time)
+)
+
+export const rejectedOrders = () =>
+  useSelector((state) => state.order.orders).filter((value) => {
+    return value.order_action == 'rejected';
+  });
+
+export const setOrderPicked = () => (
+  orders().filter((value) => {
+    return (
+      Boolean(value.prepared_at) && !value.completed_at
+    )
+  }).sort((a, b) => b.order_place_time - a.order_place_time)
+)
+
+export const completedOrder = () => (
+  allOrders().filter((value) => {
+    return (
+      Boolean(value.completed_at)
+    )
+  }).sort((a, b) => b.order_place_time - a.order_place_time)
+)
+

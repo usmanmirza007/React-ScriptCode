@@ -1,0 +1,135 @@
+
+import React, { useEffect, useState, useRef } from 'react';
+import {
+  StyleSheet,
+  Image,
+  View,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions
+} from 'react-native';
+
+import { useNavigation } from '@react-navigation/native';
+import CustomCrop from "react-native-perspective-image-cropper";
+import { useDispatch } from 'react-redux';
+
+import {addNewDoc} from '../redux/user/actions'
+
+const ImageResize = ({ route }) => {
+
+  const widthDecreaseBy = 80;
+
+  var navigation = useNavigation();
+  const dispatch = useDispatch();
+  // {
+  //   topLeft: { x: rectangle.topLeft.x, y: rectangle.topLeft.y },
+  //   topRight: { x: rectangle.topRight.x, y: rectangle.topRight.y },
+  //   bottomLeft: { x: rectangle.bottomLeft.x, y: rectangle.bottomLeft.y },
+  //   bottomRight: { x: rectangle.bottomRight.x, y: rectangle.bottomRight.y },
+  // }
+
+  const windowWidth = useWindowDimensions().width;
+  const windowHeight = useWindowDimensions().height;
+  var rectangle = route.params.rectangle
+  // const [rectangleCoordinates, setRectangleCoordinates] = useState(rectangle)
+  const [rectangleCoordinates, setRectangleCoordinates] = useState({
+    topLeft: { x: 0, y: 0 },
+    topRight: { x: route.params.width, y: 0 },
+    bottomRight: { x: route.params.width, y: route.params.height },
+    bottomLeft: { x: 0, y: route.params.height }
+  })
+  const [imageHeight, setImageHeight] = useState(route.params.height)
+  const [imageWidth, setImageWidth] = useState(route.params.width)
+  const [image, setImage] = useState(route.params.imageUri)
+  const customCrop = useRef();
+
+  useEffect(() => {
+    setImage(route.params.imageUri);
+    setImageWidth(route.params.width);
+    setImageHeight(route.params.height);
+    // console.log('route.params.rectangle');
+    if (route.params.rectangle) {
+
+      const adjustWidth = (((widthDecreaseBy) / imageWidth) * widthDecreaseBy) / 2
+      const heightDecreaseBy = (widthDecreaseBy / imageWidth) * imageHeight;
+      const adjustHeight =  (((heightDecreaseBy) / imageHeight) * heightDecreaseBy) / 2
+
+      setRectangleCoordinates(  
+        {
+          topLeft: { x: rectangle.topRight.x - adjustWidth, y: rectangle.topRight.y - adjustHeight },
+          topRight: { x: rectangle.bottomRight.x + adjustWidth, y: rectangle.bottomRight.y - adjustHeight },
+          bottomLeft: { x: rectangle.topLeft.x - adjustWidth, y: rectangle.topLeft.y - adjustHeight },
+          bottomRight: { x: rectangle.bottomLeft.x + adjustWidth, y: rectangle.bottomLeft.y - adjustHeight },
+        }
+      )
+      
+    } else {
+      setRectangleCoordinates(  
+        {
+          topLeft: { x: 0, y: 0 },
+          topRight: { x: route.params.width, y: 0 },
+          bottomRight: { x: route.params.width, y: route.params.height },
+          bottomLeft: { x: 0, y: route.params.height }
+        }
+      )
+    }
+
+  }, [route?.params])
+
+  const updateImage = (image, newCoordinates) => {
+    setRectangleCoordinates(newCoordinates)
+    setImage(image)
+    dispatch(addNewDoc(image))
+    navigation.navigate('DocumentReviewToUpload', {
+      imageUri: image,
+    });
+  }
+  
+  var margintop = 10;
+  if (imageHeight > windowHeight) {
+    if (imageWidth > windowWidth) {
+      const height = ((imageWidth - windowWidth) / (imageWidth - widthDecreaseBy)) * imageHeight;
+      margintop = (windowHeight - 30 - height)/2;
+    }
+  
+  }
+
+
+  const crop = () => {
+    customCrop.current.crop();
+
+  }
+  return (
+    <View style={{ flex: 1, backgroundColor: 'black' }}>
+      
+      <View style={{position: 'absolute', top: 0, right: 0, zIndex: 10000}}>
+        <TouchableOpacity onPress={crop} style={{ height: 40, justifyContent: 'center', alignItems: 'flex-end' }}>
+          <Image source={require('./../images/icons/baseline.png')} style={{ width: 30, height: 30, marginRight: 25 }} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={{marginTop: Math.abs(margintop) - 60, marginHorizontal: widthDecreaseBy / 2}}>
+        {/* <Text style={{color: '#fff'}}>hello</Text> */}
+
+        <CustomCrop
+          style={{ backgroundColor: 'red' }}
+          updateImage={updateImage}
+          rectangleCoordinates={rectangleCoordinates}
+          initialImage={image}
+          height={imageHeight}
+          width={imageWidth}
+          ref={customCrop}
+          containerWidth={windowWidth - widthDecreaseBy}
+          overlayColor="rgba(18,190,210, 1)"
+          overlayStrokeColor="rgba(20,190,210, 1)"
+          handlerColor="rgba(20,150,160, 1)"
+          enablePanStrict={false}
+        />
+      </View>
+
+    </View>
+  );
+};
+
+
+export default ImageResize;

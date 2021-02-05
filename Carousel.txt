@@ -1,0 +1,33 @@
+  import Carousel from 'react-native-anchor-carousel';
+
+ const data = [
+    {
+
+      uri: 'https://i.imgur.com/GImvG4q.jpg',
+    },
+    {
+      uri: 'https://i.imgur.com/Pz2WYAc.jpg',
+    },
+    {
+      uri: 'https://i.imgur.com/IGRuEAa.jpg',
+    },
+    {
+      uri: 'https://i.imgur.com/fRGHItn.jpg',
+    },
+    {
+      uri: 'https://i.imgur.com/WmenvXr.jpg',
+    }
+  ];
+
+ <Carousel
+          style={{ backgroundColor: '#2D2D2D', marginTop: 25, }}
+          data={data}
+          keyExtractor={(item, index) => index.toString()}
+          overScrollMode={'never'}
+          renderItem={renderItem}
+          itemWidth={0.7 * width}
+          inActiveOpacity={0.3}
+          containerWidth={width - 0}
+        // ref={(c) => {
+        // }}
+        />

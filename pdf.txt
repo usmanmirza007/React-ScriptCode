@@ -1,0 +1,405 @@
+import { Image } from 'react-native';
+import RNImageToPdf from 'react-native-image-to-pdf';
+import PDFLib, { PDFDocument, PDFPage } from 'react-native-pdf-lib';
+var RNFS = require('react-native-fs');
+import ImgToBase64 from 'react-native-image-base64';
+import ImageResizer from 'react-native-image-resizer';
+import Constants from '../Constants';
+const SERVER_URL = Constants.SERVER_URL;
+var logo = `${SERVER_URL}/assets/img/red_cropped.png`;
+export const ImageToPdf = async (image) => {
+  var checkWidth = '';
+  var checkHeight = '';
+  var documentName = `Document${Math.floor(Math.random() * 1000 + 1)}.pdf`;
+  Image.getSize(logo, () => { });
+  await Image.getSize(image, (width, height) => {
+    (checkWidth = width), (checkHeight = height);
+  });
+  console.log(image);
+  var t = '';
+  let sourcePathGreenLogo =
+    '/storage/emulated/0/Android/data/com.verime/files' + '/greenLogo.png';
+  let sourcePathRedLogo =
+    '/storage/emulated/0/Android/data/com.verime/files' + '/redLogo.png';
+  let sourcePath = `/storage/emulated/0/Android/data/com.verime/files' + '/${documentName}`;
+  const docsDir = await PDFLib.getDocumentsDirectory();
+  //   this.setState({pdfReady: `file://${pdf.filePath}`});
+  const redLogoPath = `${docsDir}/redLogo.png`;
+  const greenLogoPath = `${docsDir}/greenLogo.png`;
+  // const imagePath = `${docsDir}/greenLogo.png`;
+  const pdfPath = `${docsDir}/${documentName}`;
+  await ImageResizer.createResizedImage(
+    image,
+    checkWidth,
+    checkHeight,
+    'PNG',
+    100,
+  ).then(async response => {
+    t = response.path;
+  });
+  try {
+    const options = {
+      imagePaths: [t],
+      name: documentName,
+      // maxSize: {
+      //   // optional maximum image dimension - larger images will be resized
+      //   width: checkWidth,
+      //   height: checkHeight,
+      // },
+      quality: 1.0,
+      // optional compression paramter
+    };
+    await RNImageToPdf.createPDFbyImages(options).then(async pdf => {
+      sourcePath = pdf.filePath;
+    });
+    await ImgToBase64.getBase64String(
+      `${SERVER_URL}/assets/img/logo.png`,
+    )
+      .then(async base64String => {
+        await RNFS.writeFile(greenLogoPath, base64String, 'base64');
+      })
+      .catch(err => alert(err));
+    await ImgToBase64.getBase64String(
+      `${SERVER_URL}/assets/img/red_cropped.png`,
+    )
+      .then(async base64String => {
+        await RNFS.writeFile(redLogoPath, base64String, 'base64');
+      })
+      .catch(err => alert(err));
+    await RNFS.moveFile(sourcePath, pdfPath)
+      .then(() => { })
+      .catch(err => {
+        console.log(err);
+      });
+    await RNFS.copyFile(redLogoPath, sourcePathRedLogo)
+      .then(() => { })
+      .catch(err => {
+        console.log(err);
+      });
+    await RNFS.copyFile(greenLogoPath, sourcePathGreenLogo)
+      .then(() => { })
+      .catch(err => {
+        console.log(err);
+      });
+    const page1 = PDFPage.modify(0).drawImage(greenLogoPath, 'png', {
+      x: checkWidth - 200,
+      y: 30,
+      width: 161,
+      height: 60,
+    });
+    const page2 = PDFPage.modify(0).drawImage(redLogoPath, 'png', {
+      x: checkWidth - 200,
+      y: 100,
+      width: 161,
+      height: 60,
+    });
+    var modifiedPath;
+    await PDFDocument.modify(pdfPath)
+      .modifyPages(page1, page2)
+      .write() // Returns a promise that resolves with the PDF's path
+      .then(path => {
+        modifiedPath = path;
+        console.log('PDF modified at: ' + path);
+      })
+      .catch(e => {
+        alert(e);
+      });
+    await RNFS.moveFile(pdfPath, sourcePath)
+      .then(() => { })
+      .catch(err => {
+        console.log(err);
+      });
+  } catch (e) {
+    console.log(e);
+  }
+  return sourcePath;
+};
+
+export const MultipleImageToPdf = async (croppedImages) => {
+  const getImageSize = (file) => new Promise(
+    (resolve, reject) => {
+      Image.getSize(file, (width, height) => {
+        resolve({ width, height });
+      });
+    },
+    (error) => reject(error)
+  );
+
+  const docsDir = await PDFLib.getDocumentsDirectory();
+
+  var documentName = `Document${Math.floor(Math.random() * 1000 + 1)}.pdf`;
+
+  let sourcePathGreenLogo =
+    '/storage/emulated/0/Android/data/com.verime/files' + '/greenLogo.png';
+  let sourcePathRedLogo =
+    '/storage/emulated/0/Android/data/com.verime/files' + '/redLogo.png';
+  let sourcePath = `/storage/emulated/0/Android/data/com.verime/files/${documentName}`;
+
+  const redLogoPath = `${docsDir}/redLogo.png`;
+  const greenLogoPath = `${docsDir}/greenLogo.png`;
+  const pdfPath = `${docsDir}/${documentName}`;
+
+  const imagePath = `${docsDir}/croppedImages`;
+  var images = [];
+  // convert base64 to file paths
+  for (var i = 0; i < croppedImages.length; i++) {
+    const imagepath = `${imagePath}${i}.png`;
+    await RNFS.writeFile(imagepath, croppedImages[i], 'base64');
+    images.push(`file:///${imagepath}`)
+  }
+  var checkImageWidthHeight = [];
+  var uri = [];
+  // Get size of images
+  for (const image of images) {
+    const imageSize = await getImageSize(image);
+    checkImageWidthHeight.push({ width: imageSize.width, height: imageSize.height });
+  }
+
+  // Resize images
+  for (var i = 0; i < images.length; i++) {
+    const response = await ImageResizer.createResizedImage(
+      images[i],
+      checkImageWidthHeight[i].width,
+      checkImageWidthHeight[i].height,
+      'PNG',
+      100,
+    )
+    uri.push(response.uri.replace("file:///", ''))
+  }
+  // let base64Paths = [];
+  // base64Paths.length = 0; // re-initialize the array for further re-use
+
+  // const response = await ImageResizer.createResizedImage(
+  //   images[0],
+  //   checkImageWidthHeight[0].width,
+  //   checkImageWidthHeight[0].height,
+  //   'PNG',
+  //   100,
+  // )
+  // uri = [response.uri]
+  // console.log(uri);
+  try {
+    const options = {
+      imagePaths: uri,
+      name: documentName,
+      // maxSize: {
+      //   // optional maximum images dimension - larger images will be resized
+      //   width: 500,
+      //   height: 500,
+      // },
+      quality: 1.0,
+      // optional compression paramter
+    };
+    await RNImageToPdf.createPDFbyImages(options).then(async pdf => {
+      sourcePath = pdf.filePath;
+    });
+    await ImgToBase64.getBase64String(
+      `${SERVER_URL}/assets/img/logo.png`,
+    )
+      .then(async base64String => {
+        await RNFS.writeFile(greenLogoPath, base64String, 'base64');
+      })
+      .catch(err => alert(err));
+    await ImgToBase64.getBase64String(
+      `${SERVER_URL}/assets/img/red_cropped.png`,
+    )
+      .then(async base64String => {
+        await RNFS.writeFile(redLogoPath, base64String, 'base64');
+      })
+      .catch(err => alert(err));
+
+    await RNFS.moveFile(sourcePath, pdfPath)
+      .then(result => { })
+      .catch(err => {
+        console.log(err);
+      });
+    await RNFS.copyFile(redLogoPath, sourcePathRedLogo)
+      .then(result => { })
+      .catch(err => {
+        console.log(err);
+      });
+    await RNFS.copyFile(greenLogoPath, sourcePathGreenLogo)
+      .then(result => { })
+      .catch(err => {
+        console.log(err);
+      });
+    var page1;
+    var page2;
+    for (var i = 0; i < images.length; i++) {
+      page1 = PDFPage.modify(i).drawImage(greenLogoPath, 'png', {
+        x: checkImageWidthHeight[0].width - 200,
+        y: 30,
+        width: 161,
+        height: 60,
+      });
+      page2 = PDFPage.modify(i).drawImage(redLogoPath, 'png', {
+        x: checkImageWidthHeight[0].width - 200,
+        y: 100,
+        width: 161,
+        height: 60,
+      });
+    }
+    var modifiedPath;
+    await PDFDocument.modify(pdfPath)
+      .modifyPages(page1, page2)
+      .write() // Returns a promise that resolves with the PDF's path
+      .then(path => {
+        modifiedPath = path;
+        console.log('PDF modified at: ' + path);
+      })
+      .catch(e => {
+        alert(e);
+      });
+    await RNFS.moveFile(pdfPath, sourcePath)
+      .then(result => { })
+      .catch(err => {
+        console.log(err);
+      });
+  } catch (e) {
+    console.log(e);
+  }
+  return sourcePath;
+};
+
+export const ImageToPdfOnly = async (image) => {
+  var checkWidth = '';
+  var checkHeight = '';
+  var documentName = `Document${Math.floor(Math.random() * 1000 + 1)}.pdf`;
+  await Image.getSize(image, (width, height) => {
+    (checkWidth = width), (checkHeight = height);
+  });
+  console.log(image);
+  var t = '';
+  let sourcePath = `/storage/emulated/0/Android/data/com.verime/files' + '/${documentName}`;
+  const docsDir = await PDFLib.getDocumentsDirectory();
+  const pdfPath = `${docsDir}/${documentName}`;
+  await ImageResizer.createResizedImage(
+    image,
+    checkWidth,
+    checkHeight,
+    'PNG',
+    100,
+  ).then(async response => {
+    t = response.path;
+  });
+  try {
+    const options = {
+      imagePaths: [t],
+      name: documentName,
+      maxSize: {
+        // optional maximum image dimension - larger images will be resized
+        width: checkWidth,
+        height: checkHeight,
+      },
+      quality: 1.0,
+      // optional compression paramter
+    };
+    await RNImageToPdf.createPDFbyImages(options).then(async pdf => {
+      sourcePath = pdf.filePath;
+      console.log('sourcePath', sourcePath);
+    });
+    await RNFS.moveFile(sourcePath, pdfPath)
+      .then(() => { })
+      .catch(err => {
+        console.log(err);
+      });
+    await PDFDocument.modify(pdfPath)
+      .write() // Returns a promise that resolves with the PDF's path
+      .then(path => {
+        console.log('PDF modified at: ' + path);
+      })
+      .catch(e => {
+        alert(e);
+      });
+    await RNFS.moveFile(pdfPath, sourcePath)
+      .then(() => { })
+      .catch(err => {
+        console.log(err);
+      });
+  } catch (e) {
+    console.log(e);
+  }
+  return sourcePath;
+};
+export const ImageToPdfGreen = async (image) => {
+  var checkWidth = '';
+  var checkHeight = '';
+  var documentName = `Document${Math.floor(Math.random() * 1000 + 1)}.pdf`;
+  Image.getSize(logo, () => { });
+  await Image.getSize(image, (width, height) => {
+    (checkWidth = width), (checkHeight = height);
+  });
+  console.log(image);
+  var t = '';
+  let sourcePathGreenLogo =
+    '/storage/emulated/0/Android/data/com.verime/files' + '/greenLogo.png';
+  let sourcePath = `/storage/emulated/0/Android/data/com.verime/files' + '/${documentName}`;
+  const docsDir = await PDFLib.getDocumentsDirectory();
+  const greenLogoPath = `${docsDir}/greenLogo.png`;
+  const pdfPath = `${docsDir}/${documentName}`;
+  await ImageResizer.createResizedImage(
+    image,
+    checkWidth,
+    checkHeight,
+    'PNG',
+    100,
+  ).then(async response => {
+    t = response.path;
+  });
+  try {
+    const options = {
+      imagePaths: [t],
+      name: documentName,
+      maxSize: {
+        // optional maximum image dimension - larger images will be resized
+        width: checkWidth,
+        height: checkHeight,
+      },
+      quality: 1.0,
+      // optional compression paramter
+    };
+    await RNImageToPdf.createPDFbyImages(options).then(async pdf => {
+      sourcePath = pdf.filePath;
+    });
+    await ImgToBase64.getBase64String(
+      `${SERVER_URL}/assets/img/logo.png`,
+    )
+      .then(async base64String => {
+        await RNFS.writeFile(greenLogoPath, base64String, 'base64');
+      })
+      .catch(err => alert(err));
+    await RNFS.moveFile(sourcePath, pdfPath)
+      .then(() => { })
+      .catch(err => {
+        console.log(err);
+      });
+    await RNFS.copyFile(greenLogoPath, sourcePathGreenLogo)
+      .then(() => { })
+      .catch(err => {
+        console.log(err);
+      });
+    const page1 = PDFPage.modify(0).drawImage(greenLogoPath, 'png', {
+      x: checkWidth - 200,
+      y: 30,
+      width: 161,
+      height: 60,
+    });
+    await PDFDocument.modify(pdfPath)
+      .modifyPages(page1)
+      .write() // Returns a promise that resolves with the PDF's path
+      .then(path => {
+        console.log('PDF modified at: ' + path);
+      })
+      .catch(e => {
+        alert(e);
+      });
+    await RNFS.moveFile(pdfPath, sourcePath)
+      .then(() => { })
+      .catch(err => {
+        console.log(err);
+      });
+  } catch (e) {
+    console.log(e);
+  }
+  return sourcePath;
+};

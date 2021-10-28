@@ -1,0 +1,6 @@
+var viewStyle = {};	
+            if (index == 0) {				// first
+              viewStyle = { marginLeft: 25 };
+            } else if (index == item.length - 1) {	// last
+              viewStyle = { marginRight: 25 };
+            }

@@ -1,0 +1,35 @@
+ <ScrollView showsVerticalScrollIndicator={false}>
+        {!loading && sortNotification.length !== 0 ? sortNotification?.map((item, index) => {
+          const dateYear = moment(item?.timeStamp * 1000).format('DD/MM')
+          return (
+            <View key={index} style={styles.notiView}>
+              <View style={styles.viewOne}>
+                <Text style={styles.textone}>
+                  {dateYear}
+                </Text>
+              </View>
+              <View style={styles.viewTwo}></View>
+              <View style={styles.viewThree}>
+                <Text>
+                  Your request for “{item?.serviceName}” was
+                  <Text
+                    style={{
+                      color: item?.status == 'approved' ? 'green' :
+                        item?.status == 'declined' ? 'red' :
+                          item?.status == 'pending' ? 'grey' : '#007DF0'
+                    }}>
+                    {' '}{item?.status}
+                  </Text>
+                </Text>
+              </View>
+            </View>
+          )
+        }) : sortNotification?.length == 0 ?
+          <Text style={{ textAlign: 'center', fontSize: 20, marginTop: 30, fontWeight: 'bold' }}>
+            No Notifcation for today
+          </Text> :
+          <ActivityIndicator style={{
+            alignSelf: 'center',
+            marginVertical: 145
+          }} size={'large'} color={'#0177FB'} />}
+      </ScrollView>

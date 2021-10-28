@@ -1,0 +1,67 @@
+1 check your current branch master then push >> cmd git push origin master:your branch name
+2 check your current branch master then pull >> cmd git push origin master:your branch name
+3 git checkout -b usman origin/AliShan // make local branch your pc
+
+######################## squash ###################
+git rebase 0103a6491d43653f1d8a76da718a14422e7567b5-i 
+git rebase -i HEAD~30
+
+##################################################
+ngrok http --host-header=rewrite 4200 for angular
+###################################################
+1 this cammond get latest data from origin development
+  git checkout -b verification-user-notification origin/development 
+
+1 git stash list		// show all list 
+2 git stash apply stash@{0}	// specific apply 
+
+#####################################
+
+########################### hooks add ############################
+if you commit in before commit-msg file then download and below four option
+1 https://usmandev@gerrit.zetrasoft.com/tools/hooks/commit-msg;
+2 git add .
+3 git commit --amend --no-edit
+4 git push gerrit:HEAD/refs/for/develop
+
+#################################################################
+adb reverse tcp:9090 tcp:9090
+
+git reset HEAD~
+
+// delete all changing with hard
+
+git reset HEAD^ --hard
+
+############################# wireless debugging #################
+1 adb pair 10.0.30.86:38979		click pair device wit pair code > enter ip
+2 enter pairing code 760368		enter pair code in mobile
+3 adb connect 10.0.30.86:35581		enter ip and port your mobile
+######################## Two node server run ######################
+react-native start --port 9988
+
+########################### ngrok ###############################
+1 ./ngrok authtoken 1qpW2JloWJeKwdkmSMRlYhu3zs7_7PbuxXH99Q7xd5WHCZcdQ
+2 ./ngrok http 3000
+####################################
+wire connect without internet
+gradlew assembleRelease
+expo start --localhost --android
+###################################
+
+wireless connection app 
+
+device code = adb devices
+5555 = port number
+10.0.159.82:5555 = ip address
+
+adb -s device code tcpip 5555
+adb connect 10.0.159.82:5555
+
+
+Connect reactotron with wireless
+
+1 host: '10.0.119.237'
+.configure({name: 'verime', host: 'ip address your laptop'}) 
+
+2 adb -s 10.0.155.166:5555 reverse tcp:9090 tcp:9090

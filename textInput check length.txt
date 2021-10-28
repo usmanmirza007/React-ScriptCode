@@ -1,0 +1,19 @@
+  var textInputChange = (val) => {
+    if (val.length !== 0) {
+      setSearch(true)
+      setCarSearch(val)
+    }
+    else {
+      setSearch(false)
+      setCarSearch(val)
+    }
+  }
+
+    <TextInput
+              style={[styles.inputText, { width: '90%' }]}
+              placeholder="Car name"
+              placeholderTextColor="#4C4C4C"
+              value={carSearch}
+              onChangeText={(val) => textInputChange(val)}
+              onSubmitEditing={() => searchFilter()}
+            />

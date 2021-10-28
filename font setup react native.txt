@@ -1,0 +1,25 @@
+Download the font file.
+
+Create the folder named “assets” on your project. 
+
+Inside the new folder create “font”.
+
+Past all Font.ttt files in the font folder.
+
+Create a new config file “react-native.config.js”
+
+Past the code in “react-native.config.js”
+
+
+module.exports = {
+    project: {
+      ios: {},
+      android: {}, // grouped into "project"
+    },
+    assets: ["./src/assets/fonts/"], // stays the same
+  };
+7. Check your font folder path.
+
+8. Run command react-native link.
+
+9. Restart your project npm run android

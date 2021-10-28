@@ -10,6 +10,9 @@
 5 git remote add origin git@github.com:usmanmirza007/ns-vuex-store.git
 6 git push origin master
 7 git reset --hard
+######################### keytool path ####################
+C:\Program Files\Android\Android Studio\jre\jre\bin
+
 ###################### hash key #####################
 RUN: go c user/user and run this cmd before run cmd set the path openssl
 1 keytool -exportcert -alias androiddebugkey -keystore "C:\User\1\.android\debug.keystore" | "C:\openssl-0.9.8k_X64\bin\openssl" sha1 -binary | "C:\openssl-0.9.8k_X64\bin\openssl" base64
@@ -17,21 +20,29 @@ RUN: go c user/user and run this cmd before run cmd set the path openssl
 ###################### key store SHA1 ####################
 go c/user/user/.andorid then run
 1 keytool -list -v -keystore debug.keystore -alias androiddebugkey -storepass android -keypass android
+latest cmd for SHA1
+cd android && ./gradlew signingReport
 
 ###################### react native Env ############
 1 choco install -y nodejs.install python2 jdk8
 2 npm install -g react-native-cli 
 3 npx react-native init AwesomeProject
 4 npx react-native run-android
+
+##################### Between space variable ############
+console.log(`${this.state.a} ${this.state.b}`);
+
 ###################### Rename project ##############
 1 npm install react-native-rename -g
-2 react-native-rename "MyApp"
+2 react-native-rename "My App"		// with space between project name
+3 project reName go to androidManifest.xml android.label and go to label name value > string.xml 
 3 1394335090957174
 4 npx react-native doctor
 ################snytex of getParam ################
  image: this.props.navigation.getParam('IMAGE'),
 ####################### Sign APK ####################
 go to project dictoryu
+0 "C:\Program Files\Android\Android Studio\jre\jre\bin\keytool.exe" -genkeypair -v -keystore my-upload-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000
 1 keytool -genkeypair -v -keystore my-upload-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000
 2 Edit the file ~/.gradle/gradle.properties or android/gradle.properties,
 

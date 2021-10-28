@@ -1,0 +1,91 @@
+export function BottomNavigation() {
+
+  const customText = ({ text, color }) => (
+    <Text
+      style={{
+        fontSize: 12,
+        fontFamily: 'Roboto-Bold',
+        color: color,
+        marginBottom: 55,
+      }}>
+      {text}
+    </Text>
+  );
+
+  return (
+
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          var tintColor = { tintColor: focused ? '#fff' : '#A3D6CB' };
+          let iconName;
+          if (route.name === 'HOME') {
+            iconName = images.home;
+          } else if (route.name === 'REQUESTS') {
+            iconName = images.user;
+          } else if (route.name === 'SEARCH') {
+            iconName = images.search;
+          } else if (route.name == 'FAVOURITE') {
+            iconName = images.star;
+          }
+          // You can return any component that you like here!
+          return (
+            <View style={{marginTop: -25}}>
+              {route.name === 'REQUESTS' ? <BadgeIcon /> : null}
+              <Image
+                source={iconName}
+                resizeMode="contain"
+                style={[tintColor, {
+                  marginBottom: -20,
+                  height: 20,
+                  width: 20,
+                  marginTop: route.name == 'REQUESTS' ? 10 : 0
+                }]}
+              />
+            </View>
+          );
+        },
+      })}
+      tabBarOptions={{
+        // keyboardHidesTabBar: true,
+        position: 'absolute',
+        tabBarPosition: 'bottom',
+        activeTintColor: '#fff',
+        inactiveTintColor: '#A3D6CB',
+        style: { borderTopRightRadius: 15, borderTopLeftRadius: 15, backgroundColor: '#48AC98', height: 100, alignItems: 'center', 
+        // marginVertical: 25 ,
+        paddingVertical: 25,
+        },
+        labelStyle: { fontSize: 13, height: 20, marginBottom: 7 },
+        tabStyle: {
+          height: 100, backgroundColor: '#48AC98'
+        },
+        route: HomeStack,
+      }}>
+      <Tab.Screen
+        name="HOME"
+        component={HomeStack}
+        options={{
+          tabBarLabel: ({ color }) => customText({ text: 'Home', color }),
+        }} />
+      <Tab.Screen
+        name="REQUESTS"
+        component={RequestsStack}
+        options={{
+          tabBarLabel: ({ color }) => customText({ text: 'REQUESTS', color }),
+        }} />
+      <Tab.Screen
+        name="SEARCH"
+        component={SearchStack}
+        options={{
+          tabBarLabel: ({ color }) => customText({ text: 'SEARCH', color }),
+        }} />
+      <Tab.Screen
+        name="FAVOURITE"
+        component={HistoryStack}
+        options={{
+          tabBarLabel: ({ color }) => customText({ text: 'FAVOURITE', color }),
+        }} />
+    </Tab.Navigator>
+  );
+}

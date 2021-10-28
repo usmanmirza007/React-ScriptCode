@@ -1,0 +1,20 @@
+  getPlayGround = () => {
+    fetch('https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=' + this.state.currentRegion.latitude + ',' + this.state.currentRegion.longitude + '&radius=15000&type=stadium&keyword=cruise&key=AIzaSyAQxad83rtXclRkU8xQNJA-M46_sP6sW64', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+    })
+      .then((response) => response.json())
+      .then((responseData) => {
+        console.log('PlayGround', responseData)
+        this.setState({
+          marker: responseData.results,
+          loading: false
+        })
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+  }

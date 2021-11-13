@@ -1,0 +1,9 @@
+  case GET_POPULAR_FILM_SUCCESS:
+      if (payload.page === 1) {
+        return { ...state, popularFilm: payload, loading: false }
+      }
+      
+      var data1 = JSON.parse(JSON.stringify(state.popularFilm));
+      var data = {...data, page: payload.page, results: [...data1.results, ...payload.results], total_pages: payload.total_pages};
+      // const data = {...payload, results: [...state.popularFilm, ...payload.results]};
+      return { ...state, popularFilm: data, loading: false }

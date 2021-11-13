@@ -1,0 +1,57 @@
+
+#################################### 1st way #################################
+
+<View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          marginHorizontal: 20,
+          marginVertical: 15,
+          alignItems: 'center',
+          marginTop: 40
+        }}>
+        <TouchableOpacity
+        onPress={() => props.navigation.goBack()}
+          style={{ position: 'absolute', left: 0 }}>
+          <MaterialCommunityIcons name="arrow-left" size={24} color="#007DF0" />
+
+        </TouchableOpacity>
+        <Text style={{ color: '#007DF0', fontWeight: 'bold', fontSize: 18 }}>
+          Create New Service
+        </Text>
+      </View>
+
+############################### 2nd way ###########################
+<View
+        style={{
+          marginTop: StatusBar.currentHeight + getStatusBarHeight(true) + 25,
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginHorizontal: 25,
+        }}>
+        <TouchableOpacity>
+          <Image
+            source={images.arrow_backward}
+            resizeMode={'contain'}
+            style={{
+              width: 21,
+              height: 19,
+              tintColor: '#000',
+              alignSelf: 'center'
+            }}
+          />
+        </TouchableOpacity>
+        <View style={{ width: '100%' }}>
+          <Text
+            style={{
+              fontFamily: 'Montserrat-SemiBold',
+              fontSize: 20,
+              color: colors.lightBlack,
+              alignSelf: 'center',
+              marginLeft: -21,
+
+            }}>
+            Order Summary
+            </Text>
+        </View>
+      </View>

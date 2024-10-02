@@ -1,0 +1,9 @@
+
+mariaDB or phpmyadmin connection with docker cmd
+docker run --name=[container_name] -e MYSQL_ROOT_PASSWORD=[yourpassword] -e MYSQL_DATABASE=[database_name] -p 3306:3306 -d mariadb
+docker run --name [container_name]-d --link [mariadb_container_name]:db -p 8080:80 phpmyadmin/phpmyadmin
+
+  below actual cmd with container name or password
+
+docker run --name=mariadb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=nest -p 3306:3306 -d mariadb
+docker run --name phpMyAdmin -d --link mariadb:db -p 8080:80 phpmyadmin/phpmyadmin
